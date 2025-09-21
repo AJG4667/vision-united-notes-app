@@ -1,4 +1,65 @@
-if (!videoId) {
+const recordingCard = document.getElementById('recordingCard');
+            const visualizer = document.getElementById('audioVisualizer');
+            
+            if (recording) {
+                recordBtn.style.display = 'none';
+                stopBtn.style.display = 'block';
+                recordStatus.textContent = 'Recording...';
+                recordingCard.classList.add('recording');
+                visualizer.style.display = 'flex';
+            } else {
+                recordBtn.style.display = 'block';
+                stopBtn.style.display = 'none';
+                recordStatus.textContent = 'Recording complete!';
+                recordingCard.classList.remove('recording');
+                visualizer.style.display = 'none';
+            }
+        }
+
+        function startRecordingTimer() {
+            recordingTimer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                const recordStatus = document.getElementById('recordStatus');
+                if (recordStatus) {
+                    recordStatus.textContent = `Recording... ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                }
+            }, 1000);
+        }
+
+        async function transcribeAudio() {
+            updateAIStatus('Transcribing audio...');
+            await delay(2000);
+            
+            const sampleText = `Welcome everyone! Today we're exploring the power of faith in our daily lives. 
+
+            In Romans 8:28, we read that "all things work together for good for those who love God." This doesn't mean everything that happens is good, but that God can work through all circumstances.
+
+            I want to share three key points about living by faith:
+
+            First, faith isn't the absence of doubt - it's trusting God despite our questions. Even when we can't see the full picture, we can trust in God's character and promises.
+
+            Second, faith requires action. James tells us that faith without works is dead. Our belief should translate into how we live, love, and serve others.
+
+            Third, faith grows through community. When we surround ourselves with other believers, we're strengthened and encouraged in our journey.
+
+            Let's pray together and ask God to strengthen our faith today.`;
+            
+            document.getElementById('transcript').value = sampleText;
+            await generateAISummary(sampleText);
+            showStatus('Audio transcribed successfully!', 'success');
+        }
+
+        async function processYouTubeVideo() {
+            const youtubeUrl = document.getElementById('youtube').value.trim();
+            if (!youtubeUrl) {
+                showStatus('Please enter a YouTube URL', 'error');
+                return;
+            }
+            
+            const videoId = extractYouTubeVideoId(youtubeUrl);
+            if (!videoId) {
                 showStatus('Invalid YouTube URL', 'error');
                 return;
             }
@@ -270,238 +331,6 @@ if (!videoId) {
                 loadSermonsForQA();
                 loadSermonsForStudy();
                 updateAnalytics();
-                
-                showStatus('Sermon deleted successfully', 'success');
-                updateAIStatus('Sermon deleted');
-            } else {
-                showStatus('Error deleting sermon', 'error');
-            }
-        }
-
-        function askQuickQuestion(question) {
-            document.getElementById('question').value = question;
-            askAI();
-        }
-
-        function showStatus(message, type) {
-            const status = document.getElementById('status');
-            if (!status) return;
-            
-            const statusIcon = {
-                success: '✅',
-                error: '❌',
-                warning: '⚠️',
-                info: 'ℹ️'
-            };
-            
-            status.innerHTML = `
-                <div class="status-${type}">
-                    ${statusIcon[type] || 'ℹ️'} ${message}
-                </div>
-            `;
-            
-            setTimeout(() => {
-                status.innerHTML = '';
-            }, 5000);
-        }
-
-        function showProcessingStatus(show, message = '', progress = 0) {
-            const processingStatus = document.getElementById('processingStatus');
-            const processingMessage = document.getElementById('processingMessage');
-            const progressFill = document.getElementById('progressFill');
-            
-            if (!processingStatus) return;
-            
-            if (show) {
-                processingStatus.classList.add('show');
-                if (processingMessage) processingMessage.textContent = message;
-                if (progressFill) progressFill.style.width = `${progress}%`;
-            } else {
-                processingStatus.classList.remove('show');
-            }
-        }
-
-        function updateProcessingProgress(progress, message) {
-            const processingMessage = document.getElementById('processingMessage');
-            const progressFill = document.getElementById('progressFill');
-            const processingDetails = document.getElementById('processingDetails');
-            
-            if (progressFill) progressFill.style.width = `${progress}%`;
-            if (processingMessage) processingMessage.textContent = message;
-            if (processingDetails) processingDetails.textContent = `${progress}% complete`;
-        }
-
-        function updateAIStatus(message, type = 'info') {
-            const aiStatus = document.getElementById('aiStatus');
-            if (aiStatus) {
-                aiStatus.textContent = message;
-                
-                if (type === 'error') {
-                    aiStatus.style.background = 'rgba(239, 68, 68, 0.2)';
-                } else if (type === 'success') {
-                    aiStatus.style.background = 'rgba(16, 185, 129, 0.2)';
-                } else {
-                    aiStatus.style.background = 'rgba(16, 185, 129, 0.2)';
-                }
-                
-                setTimeout(() => {
-                    aiStatus.textContent = 'AI Ready';
-                    aiStatus.style.background = 'rgba(16, 185, 129, 0.2)';
-                }, 3000);
-            }
-        }
-
-        function downloadFile(filename, content, contentType) {
-            const blob = new Blob([content], { type: contentType });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        }
-
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-
-        function delay(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        // Service Worker Registration
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', async () => {
-                try {
-                    await navigator.serviceWorker.register('./sw.js');
-                    updateAIStatus('App ready for offline use');
-                } catch (error) {
-                    console.log('ServiceWorker registration failed:', error);
-                }
-            });
-        }
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(event) {
-            // Ctrl/Cmd + S to save sermon
-            if ((event.ctrlKey || event.metaKey) && event.key === 's') {
-                event.preventDefault();
-                const activeTab = document.querySelector('.tab.active').id;
-                if (activeTab === 'tab1') {
-                    saveSermon();
-                }
-            }
-            
-            // Ctrl/Cmd + 1-5 to switch tabs
-            if ((event.ctrlKey || event.metaKey) && event.key >= '1' && event.key <= '5') {
-                event.preventDefault();
-                switchTab(event.key);
-            }
-            
-            // Alt + R to start/stop recording
-            if (event.altKey && event.key === 'r') {
-                event.preventDefault();
-                if (document.querySelector('.tab.active').id === 'tab1') {
-                    if (isRecording) {
-                        stopRecording();
-                    } else {
-                        startRecording();
-                    }
-                }
-            }
-        });
-
-        // PWA Install Prompt
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            showInstallPrompt();
-        });
-
-        function showInstallPrompt() {
-            const installBanner = document.createElement('div');
-            installBanner.id = 'installBanner';
-            installBanner.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                background: linear-gradient(135deg, var(--primary), var(--secondary));
-                color: white;
-                padding: 15px 20px;
-                text-align: center;
-                z-index: 10000;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            `;
-            
-            installBanner.innerHTML = `
-                <div style="display: flex; align-items: center; justify-content: space-between; max-width: 800px; margin: 0 auto;">
-                    <span>📱 Install Vision United app for the best experience!</span>
-                    <div>
-                        <button onclick="installApp()" style="background: white; color: var(--primary); border: none; padding: 8px 16px; margin: 0 5px; border-radius: 8px; cursor: pointer; font-weight: 600;">Install</button>
-                        <button onclick="hideInstallPrompt()" style="background: transparent; color: white; border: 1px solid white; padding: 8px 16px; margin: 0 5px; border-radius: 8px; cursor: pointer;">Later</button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(installBanner);
-        }
-
-        function hideInstallPrompt() {
-            const banner = document.getElementById('installBanner');
-            if (banner) banner.remove();
-        }
-
-        window.installApp = function() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        updateAIStatus('App installed successfully!', 'success');
-                    }
-                    deferredPrompt = null;
-                });
-            }
-            hideInstallPrompt();
-        };
-
-        // Global function exports for onclick handlers
-        window.switchTab = switchTab;
-        window.exportSermon = exportSermon;
-        window.shareSermon = shareSermon;
-        window.deleteSermon = deleteSermon;
-        window.askQuickQuestion = askQuickQuestion;
-
-        // Error handling
-        window.addEventListener('error', function(event) {
-            console.error('Global error:', event.error);
-            updateAIStatus('An error occurred', 'error');
-        });
-
-        // Online/offline status
-        window.addEventListener('online', () => {
-            updateAIStatus('Back online!', 'success');
-            showStatus('Connection restored', 'success');
-        });
-
-        window.addEventListener('offline', () => {
-            updateAIStatus('Offline mode', 'warning');
-            showStatus('App is now in offline mode', 'warning');
-        });
-    </script>
-</body>
-</html>();
                 
                 showSuccessAnimation();
             } else {
@@ -1006,7 +835,1025 @@ ${new Date().toLocaleDateString()}`;
                 loadSermons();
                 loadSermonsForQA();
                 loadSermonsForStudy();
-                updateAnalytics<!DOCTYPE html>
+                updateAnalytics();
+                
+                showStatus('Sermon deleted successfully', 'success');
+                updateAIStatus('Sermon deleted');
+            } else {
+                showStatus('Error deleting sermon', 'error');
+            }
+        }
+
+        function askQuickQuestion(question) {
+            document.getElementById('question').value = question;
+            askAI();
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            if (!status) return;
+            
+            const statusIcon = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+            
+            status.innerHTML = `
+                <div class="status-${type}">
+                    ${statusIcon[type] || 'ℹ️'} ${message}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                status.innerHTML = '';
+            }, 5000);
+        }
+
+        function showProcessingStatus(show, message = '', progress = 0) {
+            const processingStatus = document.getElementById('processingStatus');
+            const processingMessage = document.getElementById('processingMessage');
+            const progressFill = document.getElementById('progressFill');
+            
+            if (!processingStatus) return;
+            
+            if (show) {
+                processingStatus.classList.add('show');
+                if (processingMessage) processingMessage.textContent = message;
+                if (progressFill) progressFill.style.width = `${progress}%`;
+            } else {
+                processingStatus.classList.remove('show');
+            }
+        }
+
+        function updateProcessingProgress(progress, message) {
+            const processingMessage = document.getElementById('processingMessage');
+            const progressFill = document.getElementById('progressFill');
+            const processingDetails = document.getElementById('processingDetails');
+            
+            if (progressFill) progressFill.style.width = `${progress}%`;
+            if (processingMessage) processingMessage.textContent = message;
+            if (processingDetails) processingDetails.textContent = `${progress}% complete`;
+        }
+
+        function updateAIStatus(message, type = 'info') {
+            const aiStatus = document.getElementById('aiStatus');
+            if (aiStatus) {
+                aiStatus.textContent = message;
+                
+                if (type === 'error') {
+                    aiStatus.style.background = 'rgba(239, 68, 68, 0.2)';
+                } else if (type === 'success') {
+                    aiStatus.style.background = 'rgba(16, 185, 129, 0.2)';
+                } else {
+                    aiStatus.style.background = 'rgba(16, 185, 129, 0.2)';
+                }
+                
+                setTimeout(() => {
+                    aiStatus.textContent = 'AI Ready';
+                    aiStatus.style.background = 'rgba(16, 185, 129, 0.2)';
+                }, 3000);
+            }
+        }
+
+        function downloadFile(filename, content, contentType) {
+            const blob = new Blob([content], { type: contentType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    await navigator.serviceWorker.register('./sw.js');
+                    updateAIStatus('App ready for offline use');
+                } catch (error) {
+                    console.log('ServiceWorker registration failed:', error);
+                }
+            });
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            // Ctrl/Cmd + S to save sermon
+            if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+                event.preventDefault();
+                const activeTab = document.querySelector('.tab.active').id;
+                if (activeTab === 'tab1') {
+                    saveSermon();
+                }
+            }
+            
+            // Ctrl/Cmd + 1-5 to switch tabs
+            if ((event.ctrlKey || event.metaKey) && event.key >= '1' && event.key <= '5') {
+                event.preventDefault();
+                switchTab(event.key);
+            }
+            
+            // Alt + R to start/stop recording
+            if (event.altKey && event.key === 'r') {
+                event.preventDefault();
+                if (document.querySelector('.tab.active').id === 'tab1') {
+                    if (isRecording) {
+                        stopRecording();
+                    } else {
+                        startRecording();
+                    }
+                }
+            }
+        });
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            showInstallPrompt();
+        });
+
+        function showInstallPrompt() {
+            const installBanner = document.createElement('div');
+            installBanner.id = 'installBanner';
+            installBanner.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                background: linear-gradient(135deg, var(--primary), var(--secondary));
+                color: white;
+                padding: 15px 20px;
+                text-align: center;
+                z-index: 10000;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            `;
+            
+            installBanner.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: space-between; max-width: 800px; margin: 0 auto;">
+                    <span>📱 Install Vision United app for the best experience!</span>
+                    <div>
+                        <button onclick="installApp()" style="background: white; color: var(--primary); border: none; padding: 8px 16px; margin: 0 5px; border-radius: 8px; cursor: pointer; font-weight: 600;">Install</button>
+                        <button onclick="hideInstallPrompt()" style="background: transparent; color: white; border: 1px solid white; padding: 8px 16px; margin: 0 5px; border-radius: 8px; cursor: pointer;">Later</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(installBanner);
+        }
+
+        function hideInstallPrompt() {
+            const banner = document.getElementById('installBanner');
+            if (banner) banner.remove();
+        }
+
+        window.installApp = function() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        updateAIStatus('App installed successfully!', 'success');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+            hideInstallPrompt();
+        };
+
+        // Global function exports for onclick handlers
+        window.switchTab = switchTab;
+        window.exportSermon = exportSermon;
+        window.shareSermon = shareSermon;
+        window.deleteSermon = deleteSermon;
+        window.askQuickQuestion = askQuickQuestion;
+
+        // Error handling
+        window.addEventListener('error', function(event) {
+            console.error('Global error:', event.error);
+            updateAIStatus('An error occurred', 'error');
+        });
+
+        // Online/offline status
+        window.addEventListener('online', () => {
+            updateAIStatus('Back online!', 'success');
+            showStatus('Connection restored', 'success');
+        });
+
+        window.addEventListener('offline', () => {
+            updateAIStatus('Offline mode', 'warning');
+            showStatus('App is now in offline mode', 'warning');
+        });
+    </script>
+</body>
+</html><body>
+    <div class="app-container">
+        <div class="header">
+            <div class="ai-status" id="aiStatus">AI Ready</div>
+            <h1>Vision United Worship Center</h1>
+            <p>AI-Powered Sermon Management & Study Center</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="1">
+                <span class="nav-tab-icon">📝</span>
+                Add Sermon
+            </button>
+            <button class="nav-tab" data-tab="2">
+                <span class="nav-tab-icon">📚</span>
+                View Sermons
+            </button>
+            <button class="nav-tab" data-tab="3">
+                <span class="nav-tab-icon">🤖</span>
+                AI Q&A
+            </button>
+            <button class="nav-tab" data-tab="4">
+                <span class="nav-tab-icon">📖</span>
+                Study Plans
+            </button>
+            <button class="nav-tab" data-tab="5">
+                <span class="nav-tab-icon">📊</span>
+                Analytics
+            </button>
+        </div>
+
+        <div class="tab-content">
+            <!-- Add Sermon Tab -->
+            <div id="tab1" class="tab active">
+                <div class="glass-card">
+                    <div class="form-group">
+                        <label>📋 Sermon Title *</label>
+                        <input type="text" id="title" placeholder="Enter sermon title..." required>
+                        <div id="titleFeedback"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>👤 Speaker</label>
+                        <input type="text" id="speaker" placeholder="Pastor name...">
+                    </div>
+
+                    <div class="form-group">
+                        <label>📅 Date</label>
+                        <input type="date" id="sermonDate">
+                    </div>
+
+                    <div class="form-group">
+                        <label>📖 Scripture Reference</label>
+                        <input type="text" id="scripture" placeholder="e.g., John 3:16, Romans 8:28">
+                    </div>
+                </div>
+
+                <!-- Live Recording Section -->
+                <div class="glass-card recording-section" id="recordingCard">
+                    <h3>🎤 Live Recording</h3>
+                    <button class="btn" id="recordBtn">
+                        <span class="btn-icon">🎤</span>
+                        Start Recording
+                    </button>
+                    <button class="btn btn-secondary" id="stopBtn" style="display: none;">
+                        <span class="btn-icon">⏹️</span>
+                        Stop Recording
+                    </button>
+                    <div id="recordStatus"></div>
+                    <div class="audio-visualizer" id="audioVisualizer" style="display: none;">
+                        <div class="audio-bar"></div>
+                        <div class="audio-bar"></div>
+                        <div class="audio-bar"></div>
+                        <div class="audio-bar"></div>
+                        <div class="audio-bar"></div>
+                        <div class="audio-bar"></div>
+                        <div class="audio-bar"></div>
+                        <div class="audio-bar"></div>
+                    </div>
+                    <audio id="audioPlayer" controls style="display: none;"></audio>
+                </div>
+                
+                <div class="divider"><span>OR</span></div>
+                
+                <!-- YouTube Processing Section -->
+                <div class="glass-card youtube-section">
+                    <h3>📺 YouTube Video Processing</h3>
+                    <div class="form-group">
+                        <input type="url" id="youtube" placeholder="Paste YouTube URL here...">
+                    </div>
+                    
+                    <div class="transcription-method selected" data-method="captions">
+                        <strong>🚀 Instant Caption Extraction</strong>
+                        <span class="method-badge badge-instant">INSTANT</span>
+                        <span class="method-badge badge-free">FREE</span>
+                        <p style="margin-top: 12px; color: var(--text-secondary);">Extract existing YouTube captions instantly</p>
+                    </div>
+                    
+                    <div class="transcription-method" data-method="audio">
+                        <strong>🎵 AI Audio Transcription</strong>
+                        <span class="method-badge badge-free">FREE</span>
+                        <p style="margin-top: 12px; color: var(--text-secondary);">Advanced speech-to-text processing</p>
+                    </div>
+                    
+                    <div class="transcription-method" data-method="premium">
+                        <strong>⭐ Premium AI Transcription</strong>
+                        <span class="method-badge badge-premium">PREMIUM</span>
+                        <p style="margin-top: 12px; color: var(--text-secondary);">Highest quality with speaker identification</p>
+                    </div>
+                    
+                    <button class="btn" id="youtubeBtn">
+                        <span class="btn-icon">📺</span>
+                        Process YouTube Video
+                    </button>
+                    
+                    <div id="processingStatus" class="processing-status">
+                        <div id="processingMessage">Processing...</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <div id="processingDetails"></div>
+                    </div>
+                </div>
+                
+                <div class="divider"><span>OR</span></div>
+                
+                <!-- Audio File Upload Section -->
+                <div class="glass-card audio-upload-section">
+                    <h3>🎵 Upload Audio File</h3>
+                    <div class="file-upload" id="audioUpload">
+                        <span class="upload-icon">📁</span>
+                        <p><strong>Drag & drop audio file here</strong></p>
+                        <p style="color: var(--text-secondary); margin-top: 8px;">Supports MP3, WAV, M4A, OGG, FLAC</p>
+                        <input type="file" id="audioFile" accept="audio/*" style="display: none;">
+                    </div>
+                    <button class="btn" id="processAudioBtn" style="display: none;">
+                        <span class="btn-icon">🎵</span>
+                        Transcribe Audio
+                    </button>
+                </div>
+                
+                <div class="glass-card">
+                    <div class="form-group">
+                        <label>📝 Transcript</label>
+                        <textarea id="transcript" rows="6" placeholder="Transcription will appear here or enter manually..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>🤖 AI Summary</label>
+                        <textarea id="summary" rows="4" readonly style="background: rgba(0,0,0,0.05);" placeholder="AI summary will appear here..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>🎯 Key Points</label>
+                        <textarea id="keyPoints" rows="3" placeholder="Key sermon points..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🏷️ Tags</label>
+                        <input type="text" id="tags" placeholder="faith, hope, community, salvation...">
+                    </div>
+                    
+                    <button class="btn" id="saveBtn">
+                        <span class="btn-icon">💾</span>
+                        Save Sermon
+                    </button>
+                    <div id="status"></div>
+                </div>
+            </div>
+            
+            <!-- View Sermons Tab -->
+            <div id="tab2" class="tab">
+                <div class="glass-card">
+                    <h2>📚 Saved Sermons</h2>
+                    <div class="sermon-analytics" id="sermonStats">
+                        <div class="analytics-card">
+                            <div class="analytics-number" id="totalSermons">0</div>
+                            <div>Total Sermons</div>
+                        </div>
+                        <div class="analytics-card">
+                            <div class="analytics-number" id="totalHours">0</div>
+                            <div>Hours of Content</div>
+                        </div>
+                        <div class="analytics-card">
+                            <div class="analytics-number" id="avgLength">0</div>
+                            <div>Avg Length (min)</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="sermonList"></div>
+            </div>
+            
+            <!-- AI Q&A Tab -->
+            <div id="tab3" class="tab">
+                <div class="glass-card">
+                    <h2>🤖 AI Sermon Q&A</h2>
+                    <div class="form-group">
+                        <label>📚 Select Sermon</label>
+                        <select id="sermonSelect">
+                            <option value="">Choose a sermon...</option>
+                        </select>
+                    </div>
+                    
+                    <div id="selectedSermon" class="glass-card" style="display: none;">
+                        <h3 id="sermonTitle"></h3>
+                        <p id="sermonSummary"></p>
+                        <div style="margin-top: 15px;">
+                            <strong>💡 Quick Questions:</strong>
+                            <div class="suggestion-chip" onclick="askQuickQuestion('What was the main message?')">What was the main message?</div>
+                            <div class="suggestion-chip" onclick="askQuickQuestion('What scripture was referenced?')">What scripture was referenced?</div>
+                            <div class="suggestion-chip" onclick="askQuickQuestion('How can I apply this?')">How can I apply this?</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>💬 Ask AI about this sermon</label>
+                        <input type="text" id="question" placeholder="Ask anything about the sermon...">
+                        <button class="btn" id="askBtn">
+                            <span class="btn-icon">🤖</span>
+                            Ask AI
+                        </button>
+                    </div>
+                    
+                    <div id="chatHistory" class="ai-chat-container"></div>
+                </div>
+            </div>
+            
+            <!-- Study Plans Tab -->
+            <div id="tab4" class="tab">
+                <div class="glass-card">
+                    <h2>📖 Follow-Up Bible Study</h2>
+                    <div class="form-group">
+                        <label>📚 Select Sermon for Study</label>
+                        <select id="studySermonSelect">
+                            <option value="">Choose a sermon...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📅 Study Duration</label>
+                        <select id="studyDuration">
+                            <option value="7">7-Day Study</option>
+                            <option value="14">14-Day Deep Dive</option>
+                            <option value="30">30-Day Journey</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>👥 Study Type</label>
+                        <select id="studyType">
+                            <option value="personal">Personal Study</option>
+                            <option value="group">Small Group Study</option>
+                            <option value="family">Family Devotions</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn" id="generateStudyBtn">
+                        <span class="btn-icon">📖</span>
+                        Generate AI Bible Study
+                    </button>
+                    
+                    <div id="studyContent"></div>
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="tab5" class="tab">
+                <div class="glass-card">
+                    <h2>📊 Sermon Analytics</h2>
+                    <div id="analyticsContent">
+                        <div class="sermon-analytics">
+                            <div class="analytics-card">
+                                <div class="analytics-number" id="topicsCount">0</div>
+                                <div>Unique Topics</div>
+                            </div>
+                            <div class="analytics-card">
+                                <div class="analytics-number" id="scriptureCount">0</div>
+                                <div>Scripture References</div>
+                            </div>
+                            <div class="analytics-card">
+                                <div class="analytics-number" id="wordsCount">0</div>
+                                <div>Total Words</div>
+                            </div>
+                            <div class="analytics-card">
+                                <div class="analytics-number" id="studiesGenerated">0</div>
+                                <div>Studies Generated</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Buttons -->
+    <button class="floating-action" id="quickAddBtn" title="Quick Add Sermon">
+        ➕
+    </button>
+
+    <button class="voice-command" id="voiceBtn" title="Voice Commands">
+        🎤
+    </button>
+
+    <script>
+        // Global Variables
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
+        let recordingStartTime = 0;
+        let recordingTimer = null;
+        let selectedTranscriptionMethod = 'captions';
+        let currentAudioFile = null;
+        let currentSermonData = null;
+        let voiceRecognition = null;
+        let isListening = false;
+
+        // AI Engine Class
+        class AIEngine {
+            constructor() {
+                this.patterns = {
+                    scriptureRef: /\b\d*\s*[A-Z][a-z]+\s+\d+:\d+(-\d+)?\b/g,
+                    topics: ['faith', 'hope', 'love', 'salvation', 'prayer', 'forgiveness', 'community', 'grace', 'mercy', 'worship'],
+                    keyPhrases: ['the lord', 'god', 'jesus', 'christ', 'holy spirit', 'scripture', 'bible', 'gospel']
+                };
+            }
+
+            analyzeSermon(content) {
+                return {
+                    wordCount: content.split(' ').length,
+                    scriptures: this.extractScriptures(content),
+                    topics: this.identifyTopics(content),
+                    sentiment: this.analyzeSentiment(content),
+                    estimatedDuration: Math.ceil(content.split(' ').length / 150)
+                };
+            }
+
+            extractScriptures(content) {
+                const matches = content.match(this.patterns.scriptureRef) || [];
+                return [...new Set(matches)];
+            }
+
+            identifyTopics(content) {
+                const lowerContent = content.toLowerCase();
+                return this.patterns.topics.filter(topic => lowerContent.includes(topic));
+            }
+
+            analyzeSentiment(content) {
+                const positiveWords = ['love', 'hope', 'joy', 'peace', 'blessing', 'grace'];
+                const negativeWords = ['sin', 'death', 'fear', 'worry', 'doubt'];
+                
+                const words = content.toLowerCase().split(' ');
+                const positive = words.filter(word => positiveWords.includes(word)).length;
+                const negative = words.filter(word => negativeWords.includes(word)).length;
+                
+                if (positive > negative) return 'positive';
+                if (negative > positive) return 'challenging';
+                return 'balanced';
+            }
+
+            generateSummary(content) {
+                const analysis = this.analyzeSermon(content);
+                const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
+                
+                const keySentences = sentences
+                    .sort((a, b) => b.length - a.length)
+                    .slice(0, 3);
+
+                return {
+                    summary: `This sermon focuses on ${analysis.topics.join(', ')} with a ${analysis.sentiment} tone. Key themes include spiritual growth and practical faith application.`,
+                    keyPoints: keySentences,
+                    scriptures: analysis.scriptures,
+                    topics: analysis.topics,
+                    duration: `${analysis.estimatedDuration} minutes`
+                };
+            }
+
+            generateResponse(question, sermonData) {
+                const lowerQuestion = question.toLowerCase();
+                
+                if (lowerQuestion.includes('main message') || lowerQuestion.includes('main point')) {
+                    return `The main message of "${sermonData.title}" focuses on spiritual growth and practical faith application. The sermon emphasizes the importance of living out biblical principles in daily life.`;
+                }
+                
+                if (lowerQuestion.includes('scripture') || lowerQuestion.includes('bible')) {
+                    const scriptures = this.extractScriptures(sermonData.transcript);
+                    if (scriptures.length > 0) {
+                        return `This sermon references ${scriptures.slice(0, 3).join(', ')}. These passages support the main teaching about faith and spiritual growth.`;
+                    }
+                    return "I didn't find specific scripture references in this sermon transcript.";
+                }
+                
+                if (lowerQuestion.includes('apply') || lowerQuestion.includes('practical')) {
+                    return `Based on this sermon, you can apply these teachings by: practicing daily prayer and Bible reading, showing love and kindness to others, and actively participating in your faith community. The goal is to transform understanding into action.`;
+                }
+                
+                return `That's a thoughtful question about "${sermonData.title}". The sermon emphasizes spiritual growth and encourages listeners to apply biblical principles in their daily lives. Would you like me to elaborate on any specific aspect?`;
+            }
+        }
+
+        // Storage Manager Class
+        class StorageManager {
+            static save(key, data) {
+                try {
+                    localStorage.setItem(key, JSON.stringify(data));
+                    return true;
+                } catch (error) {
+                    console.error('Storage error:', error);
+                    return false;
+                }
+            }
+
+            static load(key, defaultValue = null) {
+                try {
+                    const data = localStorage.getItem(key);
+                    return data ? JSON.parse(data) : defaultValue;
+                } catch (error) {
+                    console.error('Load error:', error);
+                    return defaultValue;
+                }
+            }
+
+            static remove(key) {
+                try {
+                    localStorage.removeItem(key);
+                    return true;
+                } catch (error) {
+                    return false;
+                }
+            }
+        }
+
+        // Initialize AI Engine
+        const aiEngine = new AIEngine();
+
+        // DOM Content Loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            setupEventListeners();
+            setupVoiceCommands();
+            setupFormValidation();
+            setupFileUpload();
+            loadSermons();
+            loadSermonsForQA();
+            loadSermonsForStudy();
+            updateAnalytics();
+            updateAIStatus('System ready!');
+            
+            // Set default date and load draft
+            document.getElementById('sermonDate').value = new Date().toISOString().split('T')[0];
+            setTimeout(loadDraft, 1000);
+        }
+
+        function setupEventListeners() {
+            // Tab navigation
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabNumber = this.getAttribute('data-tab');
+                    switchTab(tabNumber);
+                    updateAIStatus(`Switched to ${this.textContent.trim()}`);
+                });
+            });
+
+            // Buttons
+            document.getElementById('recordBtn')?.addEventListener('click', startRecording);
+            document.getElementById('stopBtn')?.addEventListener('click', stopRecording);
+            document.getElementById('youtubeBtn')?.addEventListener('click', processYouTubeVideo);
+            document.getElementById('processAudioBtn')?.addEventListener('click', processAudioFile);
+            document.getElementById('saveBtn')?.addEventListener('click', saveSermon);
+            document.getElementById('askBtn')?.addEventListener('click', askAI);
+            document.getElementById('generateStudyBtn')?.addEventListener('click', generateStudy);
+            
+            // Sermon selection
+            document.getElementById('sermonSelect')?.addEventListener('change', selectSermon);
+
+            // Transcription methods
+            document.querySelectorAll('.transcription-method').forEach(method => {
+                method.addEventListener('click', function() {
+                    document.querySelectorAll('.transcription-method').forEach(m => m.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedTranscriptionMethod = this.getAttribute('data-method');
+                });
+            });
+
+            // Question input
+            document.getElementById('question')?.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    askAI();
+                }
+            });
+
+            // Floating buttons
+            document.getElementById('quickAddBtn')?.addEventListener('click', function() {
+                switchTab('1');
+                document.getElementById('title').focus();
+            });
+
+            document.getElementById('voiceBtn')?.addEventListener('click', toggleVoiceCommands);
+
+            // Auto-generate summary
+            document.getElementById('transcript')?.addEventListener('input', debounce(function() {
+                if (this.value.length > 100) {
+                    generateAISummary(this.value);
+                }
+            }, 2000));
+
+            // Setup file upload after DOM elements are ready
+            setTimeout(setupFileUpload, 100);
+        }
+
+        function setupFormValidation() {
+            const titleInput = document.getElementById('title');
+            const titleFeedback = document.getElementById('titleFeedback');
+            
+            if (titleInput && titleFeedback) {
+                titleInput.addEventListener('blur', function() {
+                    validateTitle(this, titleFeedback);
+                });
+                
+                titleInput.addEventListener('input', function() {
+                    if (this.value.length > 0) {
+                        validateTitle(this, titleFeedback);
+                    }
+                });
+            }
+
+            // Setup auto-save
+            setupAutoSave();
+        }
+
+        function validateTitle(input, feedback) {
+            const value = input.value.trim();
+            
+            if (value === '') {
+                feedback.textContent = 'Title is required';
+                feedback.className = 'status-error';
+                input.style.borderColor = 'var(--error)';
+            } else if (value.length < 3) {
+                feedback.textContent = 'Title must be at least 3 characters';
+                feedback.className = 'status-warning';
+                input.style.borderColor = 'var(--warning)';
+            } else {
+                feedback.textContent = '✓ Title looks good!';
+                feedback.className = 'status-success';
+                input.style.borderColor = 'var(--success)';
+            }
+        }
+
+        function setupAutoSave() {
+            let autoSaveTimer;
+            const inputs = ['title', 'speaker', 'scripture', 'transcript', 'keyPoints', 'tags'];
+            
+            inputs.forEach(inputId => {
+                const input = document.getElementById(inputId);
+                if (input) {
+                    input.addEventListener('input', function() {
+                        clearTimeout(autoSaveTimer);
+                        autoSaveTimer = setTimeout(saveDraft, 3000);
+                    });
+                }
+            });
+        }
+
+        function saveDraft() {
+            const draft = {
+                title: document.getElementById('title').value,
+                speaker: document.getElementById('speaker').value,
+                scripture: document.getElementById('scripture').value,
+                transcript: document.getElementById('transcript').value,
+                keyPoints: document.getElementById('keyPoints').value,
+                tags: document.getElementById('tags').value,
+                timestamp: Date.now()
+            };
+            
+            if (Object.values(draft).some(value => value && value.toString().trim())) {
+                StorageManager.save('sermonDraft', draft);
+                updateAIStatus('Draft auto-saved', 'success');
+            }
+        }
+
+        function loadDraft() {
+            const draft = StorageManager.load('sermonDraft');
+            if (draft && draft.timestamp) {
+                const hoursOld = (Date.now() - draft.timestamp) / (1000 * 60 * 60);
+                
+                if (hoursOld < 24) {
+                    const fields = ['title', 'speaker', 'scripture', 'transcript', 'keyPoints', 'tags'];
+                    fields.forEach(field => {
+                        const element = document.getElementById(field);
+                        if (element && draft[field]) {
+                            element.value = draft[field];
+                        }
+                    });
+                    showStatus('Draft loaded from previous session', 'info');
+                }
+            }
+        }
+
+        // Continue with rest of JavaScript functions...
+        function setupVoiceCommands() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                voiceRecognition = new SpeechRecognition();
+                voiceRecognition.continuous = false;
+                voiceRecognition.interimResults = false;
+                voiceRecognition.lang = 'en-US';
+
+                voiceRecognition.onresult = function(event) {
+                    const command = event.results[0][0].transcript.toLowerCase();
+                    processVoiceCommand(command);
+                };
+
+                voiceRecognition.onerror = function() {
+                    isListening = false;
+                    updateVoiceButton();
+                };
+
+                voiceRecognition.onend = function() {
+                    isListening = false;
+                    updateVoiceButton();
+                };
+            }
+        }
+
+        function toggleVoiceCommands() {
+            if (!voiceRecognition) {
+                showStatus('Voice commands not supported', 'warning');
+                return;
+            }
+
+            if (isListening) {
+                voiceRecognition.stop();
+                isListening = false;
+            } else {
+                voiceRecognition.start();
+                isListening = true;
+            }
+            updateVoiceButton();
+        }
+
+        function updateVoiceButton() {
+            const voiceBtn = document.getElementById('voiceBtn');
+            if (voiceBtn) {
+                if (isListening) {
+                    voiceBtn.classList.add('listening');
+                    voiceBtn.textContent = '🔴';
+                } else {
+                    voiceBtn.classList.remove('listening');
+                    voiceBtn.textContent = '🎤';
+                }
+            }
+        }
+
+        function processVoiceCommand(command) {
+            if (command.includes('new sermon')) {
+                switchTab('1');
+            } else if (command.includes('view sermons')) {
+                switchTab('2');
+            } else if (command.includes('ask ai')) {
+                switchTab('3');
+            } else if (command.includes('study')) {
+                switchTab('4');
+            } else if (command.includes('analytics')) {
+                switchTab('5');
+            } else if (command.includes('start recording')) {
+                startRecording();
+            } else if (command.includes('stop recording')) {
+                stopRecording();
+            }
+        }
+
+        function setupFileUpload() {
+            const uploadArea = document.getElementById('audioUpload');
+            const fileInput = document.getElementById('audioFile');
+            
+            uploadArea?.addEventListener('click', () => fileInput.click());
+            
+            uploadArea?.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea?.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea?.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0 && files[0].type.startsWith('audio/')) {
+                    handleAudioFile(files[0]);
+                }
+            });
+            
+            fileInput?.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleAudioFile(e.target.files[0]);
+                }
+            });
+        }
+
+        function handleAudioFile(file) {
+            currentAudioFile = file;
+            const uploadArea = document.getElementById('audioUpload');
+            const processBtn = document.getElementById('processAudioBtn');
+            
+            if (uploadArea && processBtn) {
+                uploadArea.innerHTML = `
+                    <span class="upload-icon">📁</span>
+                    <p><strong>${file.name}</strong></p>
+                    <p style="color: var(--text-secondary);">Size: ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                `;
+                processBtn.style.display = 'block';
+            }
+        }
+
+        function switchTab(tabNumber) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            
+            const selectedTab = document.getElementById(`tab${tabNumber}`);
+            const selectedNavTab = document.querySelector(`[data-tab="${tabNumber}"]`);
+            
+            if (selectedTab) selectedTab.classList.add('active');
+            if (selectedNavTab) selectedNavTab.classList.add('active');
+        }
+
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+                
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    const audioPlayer = document.getElementById('audioPlayer');
+                    if (audioPlayer) {
+                        audioPlayer.src = audioUrl;
+                        audioPlayer.style.display = 'block';
+                    }
+                    
+                    transcribeAudio();
+                    stream.getTracks().forEach(track => track.stop());
+                };
+                
+                mediaRecorder.start();
+                isRecording = true;
+                recordingStartTime = Date.now();
+                
+                updateRecordingUI(true);
+                startRecordingTimer();
+                updateAIStatus('Recording...');
+                
+            } catch (error) {
+                showStatus('Error accessing microphone', 'error');
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+                
+                updateRecordingUI(false);
+                
+                if (recordingTimer) {
+                    clearInterval(recordingTimer);
+                    recordingTimer = null;
+                }
+                
+                updateAIStatus('Recording complete!');
+            }
+        }
+
+        function updateRecordingUI(recording) {
+            const recordBtn = document.getElementById('recordBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const recordStatus = document.getElementById('recordStatus');
+            const recordingCard = document.getElementById('<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1015,7 +1862,6 @@ ${new Date().toLocaleDateString()}`;
     <meta name="description" content="AI-Powered Sermon Management & Study Center">
     <meta name="theme-color" content="#7c3aed">
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" href="icons/icon-192x192.png">
     
     <style>
         :root {
@@ -1910,859 +2756,6 @@ ${new Date().toLocaleDateString()}`;
                 border-color: var(--border);
             }
         }
-
-        /* Accessibility improvements */
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <div class="header">
-            <div class="ai-status" id="aiStatus">AI Ready</div>
-            <h1>Vision United Worship Center</h1>
-            <p>AI-Powered Sermon Management & Study Center</p>
-        </div>
-
-        <div class="nav-tabs">
-            <button class="nav-tab active" data-tab="1">
-                <span class="nav-tab-icon">📝</span>
-                Add Sermon
-            </button>
-            <button class="nav-tab" data-tab="2">
-                <span class="nav-tab-icon">📚</span>
-                View Sermons
-            </button>
-            <button class="nav-tab" data-tab="3">
-                <span class="nav-tab-icon">🤖</span>
-                AI Q&A
-            </button>
-            <button class="nav-tab" data-tab="4">
-                <span class="nav-tab-icon">📖</span>
-                Study Plans
-            </button>
-            <button class="nav-tab" data-tab="5">
-                <span class="nav-tab-icon">📊</span>
-                Analytics
-            </button>
-        </div>
-
-        <div class="tab-content">
-            <!-- Add Sermon Tab -->
-            <div id="tab1" class="tab active">
-                <div class="glass-card">
-                    <div class="form-group">
-                        <label>📋 Sermon Title *</label>
-                        <input type="text" id="title" placeholder="Enter sermon title..." required>
-                        <div id="titleFeedback"></div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>👤 Speaker</label>
-                        <input type="text" id="speaker" placeholder="Pastor name...">
-                    </div>
-
-                    <div class="form-group">
-                        <label>📅 Date</label>
-                        <input type="date" id="sermonDate">
-                    </div>
-
-                    <div class="form-group">
-                        <label>📖 Scripture Reference</label>
-                        <input type="text" id="scripture" placeholder="e.g., John 3:16, Romans 8:28">
-                    </div>
-                </div>
-
-                <!-- Live Recording Section -->
-                <div class="glass-card recording-section" id="recordingCard">
-                    <h3>🎤 Live Recording</h3>
-                    <button class="btn" id="recordBtn">
-                        <span class="btn-icon">🎤</span>
-                        Start Recording
-                    </button>
-                    <button class="btn btn-secondary" id="stopBtn" style="display: none;">
-                        <span class="btn-icon">⏹️</span>
-                        Stop Recording
-                    </button>
-                    <div id="recordStatus"></div>
-                    <div class="audio-visualizer" id="audioVisualizer" style="display: none;">
-                        <div class="audio-bar"></div>
-                        <div class="audio-bar"></div>
-                        <div class="audio-bar"></div>
-                        <div class="audio-bar"></div>
-                        <div class="audio-bar"></div>
-                        <div class="audio-bar"></div>
-                        <div class="audio-bar"></div>
-                        <div class="audio-bar"></div>
-                    </div>
-                    <audio id="audioPlayer" controls style="display: none;"></audio>
-                </div>
-                
-                <div class="divider"><span>OR</span></div>
-                
-                <!-- YouTube Processing Section -->
-                <div class="glass-card youtube-section">
-                    <h3>📺 YouTube Video Processing</h3>
-                    <div class="form-group">
-                        <input type="url" id="youtube" placeholder="Paste YouTube URL here...">
-                    </div>
-                    
-                    <div class="transcription-method selected" data-method="captions">
-                        <strong>🚀 Instant Caption Extraction</strong>
-                        <span class="method-badge badge-instant">INSTANT</span>
-                        <span class="method-badge badge-free">FREE</span>
-                        <p style="margin-top: 12px; color: var(--text-secondary);">Extract existing YouTube captions instantly</p>
-                    </div>
-                    
-                    <div class="transcription-method" data-method="audio">
-                        <strong>🎵 AI Audio Transcription</strong>
-                        <span class="method-badge badge-free">FREE</span>
-                        <p style="margin-top: 12px; color: var(--text-secondary);">Advanced speech-to-text processing</p>
-                    </div>
-                    
-                    <div class="transcription-method" data-method="premium">
-                        <strong>⭐ Premium AI Transcription</strong>
-                        <span class="method-badge badge-premium">PREMIUM</span>
-                        <p style="margin-top: 12px; color: var(--text-secondary);">Highest quality with speaker identification</p>
-                    </div>
-                    
-                    <button class="btn" id="youtubeBtn">
-                        <span class="btn-icon">📺</span>
-                        Process YouTube Video
-                    </button>
-                    
-                    <div id="processingStatus" class="processing-status">
-                        <div id="processingMessage">Processing...</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="progressFill"></div>
-                        </div>
-                        <div id="processingDetails"></div>
-                    </div>
-                </div>
-                
-                <div class="divider"><span>OR</span></div>
-                
-                <!-- Audio File Upload Section -->
-                <div class="glass-card audio-upload-section">
-                    <h3>🎵 Upload Audio File</h3>
-                    <div class="file-upload" id="audioUpload">
-                        <span class="upload-icon">📁</span>
-                        <p><strong>Drag & drop audio file here</strong></p>
-                        <p style="color: var(--text-secondary); margin-top: 8px;">Supports MP3, WAV, M4A, OGG, FLAC</p>
-                        <input type="file" id="audioFile" accept="audio/*" style="display: none;">
-                    </div>
-                    <button class="btn" id="processAudioBtn" style="display: none;">
-                        <span class="btn-icon">🎵</span>
-                        Transcribe Audio
-                    </button>
-                </div>
-                
-                <div class="glass-card">
-                    <div class="form-group">
-                        <label>📝 Transcript</label>
-                        <textarea id="transcript" rows="6" placeholder="Transcription will appear here or enter manually..."></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>🤖 AI Summary</label>
-                        <textarea id="summary" rows="4" readonly style="background: rgba(0,0,0,0.05);" placeholder="AI summary will appear here..."></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>🎯 Key Points</label>
-                        <textarea id="keyPoints" rows="3" placeholder="Key sermon points..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>🏷️ Tags</label>
-                        <input type="text" id="tags" placeholder="faith, hope, community, salvation...">
-                    </div>
-                    
-                    <button class="btn" id="saveBtn">
-                        <span class="btn-icon">💾</span>
-                        Save Sermon
-                    </button>
-                    <div id="status"></div>
-                </div>
-            </div>
-            
-            <!-- View Sermons Tab -->
-            <div id="tab2" class="tab">
-                <div class="glass-card">
-                    <h2>📚 Saved Sermons</h2>
-                    <div class="sermon-analytics" id="sermonStats">
-                        <div class="analytics-card">
-                            <div class="analytics-number" id="totalSermons">0</div>
-                            <div>Total Sermons</div>
-                        </div>
-                        <div class="analytics-card">
-                            <div class="analytics-number" id="totalHours">0</div>
-                            <div>Hours of Content</div>
-                        </div>
-                        <div class="analytics-card">
-                            <div class="analytics-number" id="avgLength">0</div>
-                            <div>Avg Length (min)</div>
-                        </div>
-                    </div>
-                </div>
-                <div id="sermonList"></div>
-            </div>
-            
-            <!-- AI Q&A Tab -->
-            <div id="tab3" class="tab">
-                <div class="glass-card">
-                    <h2>🤖 AI Sermon Q&A</h2>
-                    <div class="form-group">
-                        <label>📚 Select Sermon</label>
-                        <select id="sermonSelect">
-                            <option value="">Choose a sermon...</option>
-                        </select>
-                    </div>
-                    
-                    <div id="selectedSermon" class="glass-card" style="display: none;">
-                        <h3 id="sermonTitle"></h3>
-                        <p id="sermonSummary"></p>
-                        <div style="margin-top: 15px;">
-                            <strong>💡 Quick Questions:</strong>
-                            <div class="suggestion-chip" onclick="askQuickQuestion('What was the main message?')">What was the main message?</div>
-                            <div class="suggestion-chip" onclick="askQuickQuestion('What scripture was referenced?')">What scripture was referenced?</div>
-                            <div class="suggestion-chip" onclick="askQuickQuestion('How can I apply this?')">How can I apply this?</div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>💬 Ask AI about this sermon</label>
-                        <input type="text" id="question" placeholder="Ask anything about the sermon...">
-                        <button class="btn" id="askBtn">
-                            <span class="btn-icon">🤖</span>
-                            Ask AI
-                        </button>
-                    </div>
-                    
-                    <div id="chatHistory" class="ai-chat-container"></div>
-                </div>
-            </div>
-            
-            <!-- Study Plans Tab -->
-            <div id="tab4" class="tab">
-                <div class="glass-card">
-                    <h2>📖 Follow-Up Bible Study</h2>
-                    <div class="form-group">
-                        <label>📚 Select Sermon for Study</label>
-                        <select id="studySermonSelect">
-                            <option value="">Choose a sermon...</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>📅 Study Duration</label>
-                        <select id="studyDuration">
-                            <option value="7">7-Day Study</option>
-                            <option value="14">14-Day Deep Dive</option>
-                            <option value="30">30-Day Journey</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>👥 Study Type</label>
-                        <select id="studyType">
-                            <option value="personal">Personal Study</option>
-                            <option value="group">Small Group Study</option>
-                            <option value="family">Family Devotions</option>
-                        </select>
-                    </div>
-                    
-                    <button class="btn" id="generateStudyBtn">
-                        <span class="btn-icon">📖</span>
-                        Generate AI Bible Study
-                    </button>
-                    
-                    <div id="studyContent"></div>
-                </div>
-            </div>
-
-            <!-- Analytics Tab -->
-            <div id="tab5" class="tab">
-                <div class="glass-card">
-                    <h2>📊 Sermon Analytics</h2>
-                    <div id="analyticsContent">
-                        <div class="sermon-analytics">
-                            <div class="analytics-card">
-                                <div class="analytics-number" id="topicsCount">0</div>
-                                <div>Unique Topics</div>
-                            </div>
-                            <div class="analytics-card">
-                                <div class="analytics-number" id="scriptureCount">0</div>
-                                <div>Scripture References</div>
-                            </div>
-                            <div class="analytics-card">
-                                <div class="analytics-number" id="wordsCount">0</div>
-                                <div>Total Words</div>
-                            </div>
-                            <div class="analytics-card">
-                                <div class="analytics-number" id="studiesGenerated">0</div>
-                                <div>Studies Generated</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Floating Action Buttons -->
-    <button class="floating-action" id="quickAddBtn" title="Quick Add Sermon">
-        ➕
-    </button>
-
-    <button class="voice-command" id="voiceBtn" title="Voice Commands">
-        🎤
-    </button>
-
-    <script>
-        // Global Variables
-        let mediaRecorder = null;
-        let audioChunks = [];
-        let isRecording = false;
-        let recordingStartTime = 0;
-        let recordingTimer = null;
-        let selectedTranscriptionMethod = 'captions';
-        let currentAudioFile = null;
-        let currentSermonData = null;
-        let voiceRecognition = null;
-        let isListening = false;
-
-        // AI Engine Class
-        class AIEngine {
-            constructor() {
-                this.patterns = {
-                    scriptureRef: /\b\d*\s*[A-Z][a-z]+\s+\d+:\d+(-\d+)?\b/g,
-                    topics: ['faith', 'hope', 'love', 'salvation', 'prayer', 'forgiveness', 'community', 'grace', 'mercy', 'worship'],
-                    keyPhrases: ['the lord', 'god', 'jesus', 'christ', 'holy spirit', 'scripture', 'bible', 'gospel']
-                };
-            }
-
-            analyzeSermon(content) {
-                return {
-                    wordCount: content.split(' ').length,
-                    scriptures: this.extractScriptures(content),
-                    topics: this.identifyTopics(content),
-                    sentiment: this.analyzeSentiment(content),
-                    estimatedDuration: Math.ceil(content.split(' ').length / 150)
-                };
-            }
-
-            extractScriptures(content) {
-                const matches = content.match(this.patterns.scriptureRef) || [];
-                return [...new Set(matches)];
-            }
-
-            identifyTopics(content) {
-                const lowerContent = content.toLowerCase();
-                return this.patterns.topics.filter(topic => lowerContent.includes(topic));
-            }
-
-            analyzeSentiment(content) {
-                const positiveWords = ['love', 'hope', 'joy', 'peace', 'blessing', 'grace'];
-                const negativeWords = ['sin', 'death', 'fear', 'worry', 'doubt'];
-                
-                const words = content.toLowerCase().split(' ');
-                const positive = words.filter(word => positiveWords.includes(word)).length;
-                const negative = words.filter(word => negativeWords.includes(word)).length;
-                
-                if (positive > negative) return 'positive';
-                if (negative > positive) return 'challenging';
-                return 'balanced';
-            }
-
-            generateSummary(content) {
-                const analysis = this.analyzeSermon(content);
-                const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
-                
-                const keySentences = sentences
-                    .sort((a, b) => b.length - a.length)
-                    .slice(0, 3);
-
-                return {
-                    summary: `This sermon focuses on ${analysis.topics.join(', ')} with a ${analysis.sentiment} tone. Key themes include spiritual growth and practical faith application.`,
-                    keyPoints: keySentences,
-                    scriptures: analysis.scriptures,
-                    topics: analysis.topics,
-                    duration: `${analysis.estimatedDuration} minutes`
-                };
-            }
-
-            generateResponse(question, sermonData) {
-                const lowerQuestion = question.toLowerCase();
-                
-                if (lowerQuestion.includes('main message') || lowerQuestion.includes('main point')) {
-                    return `The main message of "${sermonData.title}" focuses on spiritual growth and practical faith application. The sermon emphasizes the importance of living out biblical principles in daily life.`;
-                }
-                
-                if (lowerQuestion.includes('scripture') || lowerQuestion.includes('bible')) {
-                    const scriptures = this.extractScriptures(sermonData.transcript);
-                    if (scriptures.length > 0) {
-                        return `This sermon references ${scriptures.slice(0, 3).join(', ')}. These passages support the main teaching about faith and spiritual growth.`;
-                    }
-                    return "I didn't find specific scripture references in this sermon transcript.";
-                }
-                
-                if (lowerQuestion.includes('apply') || lowerQuestion.includes('practical')) {
-                    return `Based on this sermon, you can apply these teachings by: practicing daily prayer and Bible reading, showing love and kindness to others, and actively participating in your faith community. The goal is to transform understanding into action.`;
-                }
-                
-                return `That's a thoughtful question about "${sermonData.title}". The sermon emphasizes spiritual growth and encourages listeners to apply biblical principles in their daily lives. Would you like me to elaborate on any specific aspect?`;
-            }
-        }
-
-        // Storage Manager Class
-        class StorageManager {
-            static save(key, data) {
-                try {
-                    localStorage.setItem(key, JSON.stringify(data));
-                    return true;
-                } catch (error) {
-                    console.error('Storage error:', error);
-                    return false;
-                }
-            }
-
-            static load(key, defaultValue = null) {
-                try {
-                    const data = localStorage.getItem(key);
-                    return data ? JSON.parse(data) : defaultValue;
-                } catch (error) {
-                    console.error('Load error:', error);
-                    return defaultValue;
-                }
-            }
-
-            static remove(key) {
-                try {
-                    localStorage.removeItem(key);
-                    return true;
-                } catch (error) {
-                    return false;
-                }
-            }
-        }
-
-        // Initialize AI Engine
-        const aiEngine = new AIEngine();
-
-        // DOM Content Loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeApp();
-        });
-
-        function initializeApp() {
-            setupEventListeners();
-            setupVoiceCommands();
-            loadSermons();
-            loadSermonsForQA();
-            loadSermonsForStudy();
-            updateAnalytics();
-            setupFileUpload();
-            updateAIStatus('System ready!');
-            
-            // Set default date
-            document.getElementById('sermonDate').value = new Date().toISOString().split('T')[0];
-        }
-
-        // Initialize form validation and auto-save
-        function setupFormValidation() {
-            const titleInput = document.getElementById('title');
-            const titleFeedback = document.getElementById('titleFeedback');
-            
-            if (titleInput && titleFeedback) {
-                titleInput.addEventListener('blur', function() {
-                    validateTitle(this, titleFeedback);
-                });
-                
-                titleInput.addEventListener('input', function() {
-                    if (this.value.length > 0) {
-                        validateTitle(this, titleFeedback);
-                    }
-                });
-            }
-
-            // Setup auto-save
-            setupAutoSave();
-        }
-
-        function validateTitle(input, feedback) {
-            const value = input.value.trim();
-            
-            if (value === '') {
-                feedback.textContent = 'Title is required';
-                feedback.className = 'status-error';
-                input.style.borderColor = 'var(--error)';
-            } else if (value.length < 3) {
-                feedback.textContent = 'Title must be at least 3 characters';
-                feedback.className = 'status-warning';
-                input.style.borderColor = 'var(--warning)';
-            } else {
-                feedback.textContent = '✓ Title looks good!';
-                feedback.className = 'status-success';
-                input.style.borderColor = 'var(--success)';
-            }
-        }
-
-        function setupAutoSave() {
-            let autoSaveTimer;
-            const inputs = ['title', 'speaker', 'scripture', 'transcript', 'keyPoints', 'tags'];
-            
-            inputs.forEach(inputId => {
-                const input = document.getElementById(inputId);
-                if (input) {
-                    input.addEventListener('input', function() {
-                        clearTimeout(autoSaveTimer);
-                        autoSaveTimer = setTimeout(saveDraft, 3000);
-                    });
-                }
-            });
-        }
-
-        function saveDraft() {
-            const draft = {
-                title: document.getElementById('title').value,
-                speaker: document.getElementById('speaker').value,
-                scripture: document.getElementById('scripture').value,
-                transcript: document.getElementById('transcript').value,
-                keyPoints: document.getElementById('keyPoints').value,
-                tags: document.getElementById('tags').value,
-                timestamp: Date.now()
-            };
-            
-            if (Object.values(draft).some(value => value && value.toString().trim())) {
-                StorageManager.save('sermonDraft', draft);
-                updateAIStatus('Draft auto-saved', 'success');
-            }
-        }
-
-        function loadDraft() {
-            const draft = StorageManager.load('sermonDraft');
-            if (draft && draft.timestamp) {
-                const hoursOld = (Date.now() - draft.timestamp) / (1000 * 60 * 60);
-                
-                if (hoursOld < 24) {
-                    const fields = ['title', 'speaker', 'scripture', 'transcript', 'keyPoints', 'tags'];
-                    fields.forEach(field => {
-                        const element = document.getElementById(field);
-                        if (element && draft[field]) {
-                            element.value = draft[field];
-                        }
-                    });
-                    showStatus('Draft loaded from previous session', 'info');
-                }
-            }
-        }
-            // Tab navigation
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const tabNumber = this.getAttribute('data-tab');
-                    switchTab(tabNumber);
-                    updateAIStatus(`Switched to ${this.textContent.trim()}`);
-                });
-            });
-
-            // Buttons
-            document.getElementById('recordBtn')?.addEventListener('click', startRecording);
-            document.getElementById('stopBtn')?.addEventListener('click', stopRecording);
-            document.getElementById('youtubeBtn')?.addEventListener('click', processYouTubeVideo);
-            document.getElementById('processAudioBtn')?.addEventListener('click', processAudioFile);
-            document.getElementById('saveBtn')?.addEventListener('click', saveSermon);
-            document.getElementById('askBtn')?.addEventListener('click', askAI);
-            document.getElementById('generateStudyBtn')?.addEventListener('click', generateStudy);
-            
-            // Sermon selection
-            document.getElementById('sermonSelect')?.addEventListener('change', selectSermon);
-
-            // Transcription methods
-            document.querySelectorAll('.transcription-method').forEach(method => {
-                method.addEventListener('click', function() {
-                    document.querySelectorAll('.transcription-method').forEach(m => m.classList.remove('selected'));
-                    this.classList.add('selected');
-                    selectedTranscriptionMethod = this.getAttribute('data-method');
-                });
-            });
-
-            // Question input
-            document.getElementById('question')?.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    askAI();
-                }
-            });
-
-            // Floating buttons
-            document.getElementById('quickAddBtn')?.addEventListener('click', function() {
-                switchTab('1');
-                document.getElementById('title').focus();
-            });
-
-            document.getElementById('voiceBtn')?.addEventListener('click', toggleVoiceCommands);
-
-            // Auto-generate summary
-            document.getElementById('transcript')?.addEventListener('input', debounce(function() {
-                if (this.value.length > 100) {
-                    generateAISummary(this.value);
-                }
-            }, 2000));
-
-            // Setup file upload after DOM elements are ready
-            setTimeout(setupFileUpload, 100);
-        }
-
-        function setupVoiceCommands() {
-            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                voiceRecognition = new SpeechRecognition();
-                voiceRecognition.continuous = false;
-                voiceRecognition.interimResults = false;
-                voiceRecognition.lang = 'en-US';
-
-                voiceRecognition.onresult = function(event) {
-                    const command = event.results[0][0].transcript.toLowerCase();
-                    processVoiceCommand(command);
-                };
-
-                voiceRecognition.onerror = function() {
-                    isListening = false;
-                    updateVoiceButton();
-                };
-
-                voiceRecognition.onend = function() {
-                    isListening = false;
-                    updateVoiceButton();
-                };
-            }
-        }
-
-        function toggleVoiceCommands() {
-            if (!voiceRecognition) {
-                showStatus('Voice commands not supported', 'warning');
-                return;
-            }
-
-            if (isListening) {
-                voiceRecognition.stop();
-                isListening = false;
-            } else {
-                voiceRecognition.start();
-                isListening = true;
-            }
-            updateVoiceButton();
-        }
-
-        function updateVoiceButton() {
-            const voiceBtn = document.getElementById('voiceBtn');
-            if (voiceBtn) {
-                if (isListening) {
-                    voiceBtn.classList.add('listening');
-                    voiceBtn.textContent = '🔴';
-                } else {
-                    voiceBtn.classList.remove('listening');
-                    voiceBtn.textContent = '🎤';
-                }
-            }
-        }
-
-        function processVoiceCommand(command) {
-            if (command.includes('new sermon')) {
-                switchTab('1');
-            } else if (command.includes('view sermons')) {
-                switchTab('2');
-            } else if (command.includes('ask ai')) {
-                switchTab('3');
-            } else if (command.includes('study')) {
-                switchTab('4');
-            } else if (command.includes('analytics')) {
-                switchTab('5');
-            } else if (command.includes('start recording')) {
-                startRecording();
-            } else if (command.includes('stop recording')) {
-                stopRecording();
-            }
-        }
-
-        function setupFileUpload() {
-            const uploadArea = document.getElementById('audioUpload');
-            const fileInput = document.getElementById('audioFile');
-            
-            uploadArea?.addEventListener('click', () => fileInput.click());
-            
-            uploadArea?.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadArea.classList.add('dragover');
-            });
-            
-            uploadArea?.addEventListener('dragleave', () => {
-                uploadArea.classList.remove('dragover');
-            });
-            
-            uploadArea?.addEventListener('drop', (e) => {
-                e.preventDefault();
-                uploadArea.classList.remove('dragover');
-                const files = e.dataTransfer.files;
-                if (files.length > 0 && files[0].type.startsWith('audio/')) {
-                    handleAudioFile(files[0]);
-                }
-            });
-            
-            fileInput?.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    handleAudioFile(e.target.files[0]);
-                }
-            });
-        }
-
-        function handleAudioFile(file) {
-            currentAudioFile = file;
-            const uploadArea = document.getElementById('audioUpload');
-            const processBtn = document.getElementById('processAudioBtn');
-            
-            if (uploadArea && processBtn) {
-                uploadArea.innerHTML = `
-                    <span class="upload-icon">📁</span>
-                    <p><strong>${file.name}</strong></p>
-                    <p style="color: var(--text-secondary);">Size: ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                `;
-                processBtn.style.display = 'block';
-            }
-        }
-
-        function switchTab(tabNumber) {
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
-            
-            const selectedTab = document.getElementById(`tab${tabNumber}`);
-            const selectedNavTab = document.querySelector(`[data-tab="${tabNumber}"]`);
-            
-            if (selectedTab) selectedTab.classList.add('active');
-            if (selectedNavTab) selectedNavTab.classList.add('active');
-        }
-
-        async function startRecording() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-                
-                mediaRecorder.ondataavailable = (event) => {
-                    audioChunks.push(event.data);
-                };
-                
-                mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    const audioPlayer = document.getElementById('audioPlayer');
-                    if (audioPlayer) {
-                        audioPlayer.src = audioUrl;
-                        audioPlayer.style.display = 'block';
-                    }
-                    
-                    transcribeAudio();
-                    stream.getTracks().forEach(track => track.stop());
-                };
-                
-                mediaRecorder.start();
-                isRecording = true;
-                recordingStartTime = Date.now();
-                
-                updateRecordingUI(true);
-                startRecordingTimer();
-                updateAIStatus('Recording...');
-                
-            } catch (error) {
-                showStatus('Error accessing microphone', 'error');
-            }
-        }
-
-        function stopRecording() {
-            if (mediaRecorder && isRecording) {
-                mediaRecorder.stop();
-                isRecording = false;
-                
-                updateRecordingUI(false);
-                
-                if (recordingTimer) {
-                    clearInterval(recordingTimer);
-                    recordingTimer = null;
-                }
-                
-                updateAIStatus('Recording complete!');
-            }
-        }
-
-        function updateRecordingUI(recording) {
-            const recordBtn = document.getElementById('recordBtn');
-            const stopBtn = document.getElementById('stopBtn');
-            const recordStatus = document.getElementById('recordStatus');
-            const recordingCard = document.getElementById('recordingCard');
-            const visualizer = document.getElementById('audioVisualizer');
-            
-            if (recording) {
-                recordBtn.style.display = 'none';
-                stopBtn.style.display = 'block';
-                recordStatus.textContent = 'Recording...';
-                recordingCard.classList.add('recording');
-                visualizer.style.display = 'flex';
-            } else {
-                recordBtn.style.display = 'block';
-                stopBtn.style.display = 'none';
-                recordStatus.textContent = 'Recording complete!';
-                recordingCard.classList.remove('recording');
-                visualizer.style.display = 'none';
-            }
-        }
-
-        function startRecordingTimer() {
-            recordingTimer = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
-                const minutes = Math.floor(elapsed / 60);
-                const seconds = elapsed % 60;
-                const recordStatus = document.getElementById('recordStatus');
-                if (recordStatus) {
-                    recordStatus.textContent = `Recording... ${minutes}:${seconds.toString().padStart(2, '0')}`;
-                }
-            }, 1000);
-        }
-
-        async function transcribeAudio() {
-            updateAIStatus('Transcribing audio...');
-            await delay(2000);
-            
-            const sampleText = `Welcome everyone! Today we're exploring the power of faith in our daily lives. 
-
-            In Romans 8:28, we read that "all things work together for good for those who love God." This doesn't mean everything that happens is good, but that God can work through all circumstances.
-
-            I want to share three key points about living by faith:
-
-            First, faith isn't the absence of doubt - it's trusting God despite our questions. Even when we can't see the full picture, we can trust in God's character and promises.
-
-            Second, faith requires action. James tells us that faith without works is dead. Our belief should translate into how we live, love, and serve others.
-
-            Third, faith grows through community. When we surround ourselves with other believers, we're strengthened and encouraged in our journey.
-
-            Let's pray together and ask God to strengthen our faith today.`;
-            
-            document.getElementById('transcript').value = sampleText;
-            await generateAISummary(sampleText);
-            showStatus('Audio transcribed successfully!', 'success');
-        }
-
-        async function processYouTubeVideo() {
-            const youtubeUrl = document.getElementById('youtube').value.trim();
-            if (!youtubeUrl) {
-                showStatus('Please enter a YouTube URL', 'error');
-                return;
-            }
-            
-            const videoId = extractYouTubeVideoId(youtubeUrl);
-            if (!videoId) {
-                showStatus('Invalid YouTube URL',
