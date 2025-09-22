@@ -62,40 +62,20 @@
             overflow: hidden;
         }
 
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            animation: shimmer 3s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-
         .header h1 {
             font-size: 2.2em;
             font-weight: 700;
             margin-bottom: 8px;
             text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-            position: relative;
-            z-index: 1;
         }
 
         .header p {
             opacity: 0.95;
             font-size: 1.1em;
             font-weight: 500;
-            position: relative;
-            z-index: 1;
         }
 
-        .ai-status {
+        .browser-status {
             position: absolute;
             top: 15px;
             right: 20px;
@@ -107,17 +87,6 @@
             font-weight: 600;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            animation: pulse 2s infinite;
-        }
-
-        .ai-status::before {
-            content: '🤖';
-            margin-right: 8px;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
         }
 
         .nav-tabs {
@@ -282,6 +251,12 @@
             outline-offset: 2px;
         }
 
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .btn-secondary {
             background: linear-gradient(135deg, var(--secondary), var(--accent));
         }
@@ -315,59 +290,95 @@
             min-width: 150px;
         }
 
-        .status-success {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
-            color: var(--secondary);
-            border: 1px solid rgba(16, 185, 129, 0.3);
+        .status-message {
             padding: 16px 20px;
             border-radius: 16px;
             margin: 20px 0;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
+            color: var(--secondary);
+            border: 1px solid rgba(16, 185, 129, 0.3);
         }
 
         .status-error {
             background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
             color: #991b1b;
             border: 1px solid rgba(239, 68, 68, 0.3);
-            padding: 16px 20px;
-            border-radius: 16px;
-            margin: 20px 0;
-            font-weight: 600;
         }
 
         .status-warning {
             background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1));
             color: #92400e;
             border: 1px solid rgba(245, 158, 11, 0.3);
-            padding: 16px 20px;
-            border-radius: 16px;
-            margin: 20px 0;
+        }
+
+        .status-info {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.1));
+            color: #1e40af;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .transcription-controls {
+            display: flex;
+            gap: 12px;
+            margin: 15px 0;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .recording-indicator {
+            display: none;
+            color: var(--error);
             font-weight: 600;
+            animation: pulse 1s infinite;
+            align-items: center;
+            gap: 8px;
         }
 
-        .divider {
-            text-align: center;
-            margin: 30px 0;
+        .recording-indicator.active {
+            display: flex;
+        }
+
+        .recording-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--error);
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .word-count {
+            font-size: 0.9em;
             color: var(--text-secondary);
-            font-weight: 700;
-            position: relative;
+            margin-top: 8px;
         }
 
-        .divider::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--border), transparent);
+        .youtube-player {
+            margin-top: 15px;
+            display: none;
+            border-radius: 16px;
+            overflow: hidden;
         }
 
-        .divider span {
-            background: var(--background);
-            padding: 0 20px;
-            position: relative;
-            z-index: 1;
+        .youtube-player iframe {
+            width: 100%;
+            height: 300px;
+            border: none;
+        }
+
+        .youtube-instructions {
+            color: var(--text-secondary);
+            margin-top: 10px;
+            font-size: 0.9em;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
         }
 
         .floating-action {
@@ -420,45 +431,6 @@
             margin-top: 8px;
         }
 
-        .transcription-controls {
-            display: flex;
-            gap: 12px;
-            margin: 15px 0;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .recording-indicator {
-            display: none;
-            color: var(--error);
-            font-weight: 600;
-            animation: pulse 1s infinite;
-        }
-
-        .recording-indicator.active {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .word-count {
-            font-size: 0.9em;
-            color: var(--text-secondary);
-            margin-top: 8px;
-        }
-
-        .export-buttons {
-            display: flex;
-            gap: 12px;
-            margin: 15px 0;
-            flex-wrap: wrap;
-        }
-
-        .export-buttons .btn {
-            flex: 1;
-            min-width: 120px;
-        }
-
         .sermon-actions {
             display: flex;
             gap: 12px;
@@ -481,7 +453,7 @@
                 font-size: 1.8em;
             }
 
-            .ai-status {
+            .browser-status {
                 position: static;
                 margin: 10px auto 0;
                 display: inline-block;
@@ -548,9 +520,9 @@
 <body>
     <div class="app-container">
         <div class="header">
-            <div class="ai-status" id="aiStatus" role="status" aria-live="polite">AI Ready</div>
+            <div class="browser-status" id="browserStatus">Checking compatibility...</div>
             <h1>Vision United Worship Center</h1>
-            <p>AI-Powered Sermon Management & Study Center with Real-Time Transcription</p>
+            <p>AI-Powered Sermon Management with Real-Time Speech Transcription</p>
         </div>
 
         <nav class="nav-tabs" role="tablist">
@@ -580,6 +552,8 @@
             <!-- Add Sermon Tab -->
             <div id="tab1" class="tab active" role="tabpanel" aria-labelledby="tab1-button">
                 <div class="glass-card">
+                    <div id="compatibilityAlert"></div>
+                    
                     <div class="form-group">
                         <label for="title">📋 Sermon Title *</label>
                         <input type="text" id="title" placeholder="Enter sermon title..." required aria-required="true">
@@ -605,34 +579,34 @@
                         <input type="url" id="youtubeUrl" placeholder="Paste YouTube video URL here...">
                         <button type="button" class="btn btn-secondary" onclick="loadYouTubeVideo()" style="margin-top: 10px;">
                             <span class="btn-icon">📺</span>
-                            Load Video for Transcription
+                            Load Video for Manual Transcription
                         </button>
-                        <div id="youtubePlayer" style="margin-top: 15px; display: none;">
-                            <iframe id="youtubeIframe" width="100%" height="300" frameborder="0" allowfullscreen></iframe>
-                            <p style="color: var(--text-secondary); margin-top: 10px; font-size: 0.9em;">
-                                ▶️ Play the video and use the microphone button below to transcribe the audio in real-time.
-                            </p>
+                        <div id="youtubePlayer" class="youtube-player">
+                            <iframe id="youtubeIframe" allowfullscreen></iframe>
+                            <div class="youtube-instructions">
+                                📋 <strong>Instructions:</strong> Play the video at a comfortable volume through your speakers, then click "Start Recording" below to transcribe the audio using your microphone. This manual method works around browser security limitations.
+                            </div>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="transcript">🎤 Transcript</label>
+                        <label for="transcript">🎤 Live Speech Transcription</label>
                         <div class="transcription-controls">
-                            <button type="button" class="btn btn-mic" id="startTranscription">
+                            <button type="button" class="btn btn-mic" id="startTranscriptionBtn" disabled>
                                 <span class="btn-icon">🎤</span>
-                                Start Recording
+                                Checking microphone...
                             </button>
-                            <button type="button" class="btn btn-secondary" id="clearTranscript" onclick="clearTranscript()">
+                            <button type="button" class="btn btn-secondary" onclick="clearTranscript()">
                                 <span class="btn-icon">🗑️</span>
                                 Clear
                             </button>
                             <div class="recording-indicator" id="recordingIndicator">
-                                <span style="width: 8px; height: 8px; background: var(--error); border-radius: 50%; display: inline-block;"></span>
-                                Recording...
+                                <span class="recording-dot"></span>
+                                Recording live audio...
                             </div>
                         </div>
-                        <div id="microphoneStatus" style="margin: 10px 0; padding: 10px; border-radius: 8px; display: none;"></div>
-                        <textarea id="transcript" rows="8" placeholder="Enter sermon transcript manually or use the microphone to record live speech..."></textarea>
+                        <div id="speechStatus"></div>
+                        <textarea id="transcript" rows="8" placeholder="Click 'Start Recording' to begin live speech transcription, or type your sermon transcript manually..."></textarea>
                         <div class="word-count" id="wordCount">0 words</div>
                     </div>
                     
@@ -673,18 +647,14 @@
             <div id="tab2" class="tab" role="tabpanel" aria-labelledby="tab2-button">
                 <div class="glass-card">
                     <h2>📚 Saved Sermons</h2>
-                    <div class="export-buttons">
-                        <button type="button" class="btn btn-secondary" onclick="exportAllSermons('txt')">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-secondary" onclick="exportAllSermons()">
                             <span class="btn-icon">📄</span>
                             Export All (.txt)
                         </button>
                         <button type="button" class="btn btn-secondary" onclick="backupSermons()">
                             <span class="btn-icon">💾</span>
                             Backup Data
-                        </button>
-                        <button type="button" class="btn btn-secondary" onclick="shareSermons()">
-                            <span class="btn-icon">📤</span>
-                            Share Collection
                         </button>
                     </div>
                     <div id="sermonList"></div>
@@ -695,7 +665,7 @@
             <div id="tab3" class="tab" role="tabpanel" aria-labelledby="tab3-button">
                 <div class="glass-card">
                     <h2>🤖 AI Sermon Q&A</h2>
-                    <p>Select a sermon and ask questions about it! This feature provides AI-powered insights based on your sermon content.</p>
+                    <p>Select a sermon and ask questions about it!</p>
                     <div id="qaInterface">
                         <div class="form-group">
                             <label for="sermonSelect">Select Sermon:</label>
@@ -776,19 +746,56 @@
         let sermons = [];
         let recognition = null;
         let isRecording = false;
-        let transcriptText = '';
+        let finalTranscript = '';
+        let interimTranscript = '';
 
         // Initialize app when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Initializing Vision United Worship Center...');
+            console.log('🚀 Initializing Vision United Worship Center...');
+            checkBrowserCompatibility();
             initializeApp();
             initializeSpeechRecognition();
+            setupFloatingActionButton();
         });
+
+        function checkBrowserCompatibility() {
+            const isHttps = location.protocol === 'https:' || location.hostname === 'localhost';
+            const hasWebSpeech = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+            const isChrome = navigator.userAgent.includes('Chrome');
+            const statusElement = document.getElementById('browserStatus');
+            const alertElement = document.getElementById('compatibilityAlert');
+            
+            let status = '';
+            let alertHTML = '';
+            
+            if (!isHttps) {
+                status = '⚠️ Needs HTTPS';
+                alertHTML = '<div class="status-message status-error">🔒 <strong>HTTPS Required:</strong> Speech recognition requires HTTPS or localhost. Please serve this app via a local server (not file://) or host it on HTTPS.</div>';
+            } else if (!hasWebSpeech) {
+                status = '❌ No Speech API';
+                alertHTML = '<div class="status-message status-warning">🌐 <strong>Browser Not Supported:</strong> Speech recognition is not available in this browser. Please use Chrome, Edge, or Safari for live transcription features.</div>';
+            } else if (!isChrome) {
+                status = '⚠️ Limited Support';
+                alertHTML = '<div class="status-message status-info">💡 <strong>Best Experience in Chrome:</strong> For optimal speech recognition, we recommend using Google Chrome or Microsoft Edge.</div>';
+            } else {
+                status = '✅ Fully Compatible';
+                alertHTML = '<div class="status-message status-success">🎉 <strong>Perfect Setup:</strong> Your browser fully supports all features including live speech transcription!</div>';
+            }
+            
+            statusElement.textContent = status;
+            alertElement.innerHTML = alertHTML;
+            
+            console.log('Browser Compatibility Check:', {
+                isHttps,
+                hasWebSpeech,
+                isChrome,
+                userAgent: navigator.userAgent
+            });
+        }
 
         function initializeApp() {
             try {
                 loadSermons();
-                updateAIStatus('System ready!');
                 
                 // Set default date
                 const dateInput = document.getElementById('sermonDate');
@@ -802,230 +809,257 @@
                 // Add event listeners
                 document.getElementById('transcript').addEventListener('input', updateWordCount);
                 
-                // Initialize floating action button
-                document.getElementById('floatingActionBtn').onclick = function() {
-                    switchTab('1');
-                    // Add visual feedback
-                    if (navigator.vibrate) {
-                        navigator.vibrate(50);
-                    }
-                    updateAIStatus('Switched to Add Sermon');
-                };
-                
-                console.log('App initialized successfully!');
+                console.log('✅ App initialized successfully!');
                 updateAnalytics();
                 
                 // Show welcome message
                 setTimeout(() => {
-                    showStatus('Welcome to Vision United Worship Center! Click the microphone to start recording.', 'info');
-                }, 1000);
+                    showStatus('Welcome! Add your first sermon or test the live transcription feature.', 'info');
+                }, 2000);
                 
             } catch (error) {
-                console.error('Initialization error:', error);
-                updateAIStatus('Initialization failed', 'error');
+                console.error('❌ Initialization error:', error);
                 showStatus('App initialization failed. Please refresh the page.', 'error');
             }
         }
 
         function initializeSpeechRecognition() {
-            // Check for Speech Recognition support
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const startBtn = document.getElementById('startTranscriptionBtn');
+            const statusDiv = document.getElementById('speechStatus');
             
             if (!SpeechRecognition) {
-                document.getElementById('startTranscription').style.display = 'none';
-                showMicrophoneStatus('Speech recognition not supported in this browser. Try Chrome or Edge.', 'error');
+                console.log('❌ Speech Recognition not supported');
+                startBtn.disabled = true;
+                startBtn.innerHTML = '<span class="btn-icon">❌</span>Not Supported';
+                showSpeechStatus('Speech recognition is not supported in this browser. Please use Chrome or Edge.', 'error');
                 return;
             }
-
-            recognition = new SpeechRecognition();
             
-            // Configure recognition
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.lang = 'en-US';
-            recognition.maxAlternatives = 1;
+            // Check if we're on HTTPS or localhost
+            const isSecure = location.protocol === 'https:' || location.hostname === 'localhost';
+            if (!isSecure) {
+                console.log('❌ HTTPS required for Speech Recognition');
+                startBtn.disabled = true;
+                startBtn.innerHTML = '<span class="btn-icon">🔒</span>HTTPS Required';
+                showSpeechStatus('Speech recognition requires HTTPS. Please serve this app via localhost or HTTPS.', 'error');
+                return;
+            }
             
-            // Set up event handlers
-            recognition.onstart = function() {
-                console.log('Speech recognition started');
-                isRecording = true;
-                document.getElementById('recordingIndicator').classList.add('active');
-                showMicrophoneStatus('🎤 Listening... Speak clearly into your microphone.', 'success');
-                updateAIStatus('Listening...', 'info');
+            try {
+                recognition = new SpeechRecognition();
+                console.log('✅ Speech Recognition initialized');
                 
-                const btn = document.getElementById('startTranscription');
-                btn.innerHTML = '<span class="btn-icon">⏹️</span>Stop Recording';
-                btn.classList.add('recording');
-            };
-            
-            recognition.onresult = function(event) {
-                console.log('Speech recognition result received');
-                let interimTranscript = '';
-                let finalTranscript = transcriptText;
+                // Configure recognition settings
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+                recognition.maxAlternatives = 1;
                 
-                // Process all results
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
+                // Set up event handlers
+                recognition.onstart = function() {
+                    console.log('🎤 Speech recognition started');
+                    isRecording = true;
+                    startBtn.innerHTML = '<span class="btn-icon">⏹️</span>Stop Recording';
+                    startBtn.classList.add('recording');
+                    document.getElementById('recordingIndicator').classList.add('active');
+                    showSpeechStatus('🎤 Listening... Speak clearly into your microphone.', 'info');
+                };
+                
+                recognition.onresult = function(event) {
+                    console.log('📝 Speech recognition result received');
                     
-                    if (event.results[i].isFinal) {
-                        finalTranscript += transcript + ' ';
-                        console.log('Final transcript:', transcript);
-                    } else {
-                        interimTranscript += transcript;
-                        console.log('Interim transcript:', transcript);
-                    }
-                }
-                
-                // Update the textarea with both final and interim results
-                const textArea = document.getElementById('transcript');
-                textArea.value = finalTranscript + interimTranscript;
-                
-                // Auto-scroll to bottom
-                textArea.scrollTop = textArea.scrollHeight;
-                
-                // Update word count
-                updateWordCount();
-                
-                // Store final transcript
-                if (event.results[event.resultIndex].isFinal) {
-                    transcriptText = finalTranscript;
-                    showMicrophoneStatus('✅ Text captured successfully. Continue speaking or stop recording.', 'success');
-                }
-            };
-            
-            recognition.onerror = function(event) {
-                console.error('Speech recognition error:', event.error);
-                let errorMessage = 'Speech recognition error: ';
-                
-                switch(event.error) {
-                    case 'no-speech':
-                        errorMessage += 'No speech detected. Please try speaking closer to the microphone.';
-                        break;
-                    case 'audio-capture':
-                        errorMessage += 'Audio capture failed. Please check your microphone.';
-                        break;
-                    case 'not-allowed':
-                        errorMessage += 'Microphone permission denied. Please allow microphone access and try again.';
-                        break;
-                    case 'network':
-                        errorMessage += 'Network error occurred. Please check your internet connection.';
-                        break;
-                    default:
-                        errorMessage += event.error;
-                }
-                
-                showMicrophoneStatus(errorMessage, 'error');
-                stopTranscription();
-            };
-            
-            recognition.onend = function() {
-                console.log('Speech recognition ended');
-                if (isRecording) {
-                    // If we were supposed to be recording, restart
-                    setTimeout(() => {
-                        if (isRecording) {
-                            try {
-                                recognition.start();
-                            } catch (e) {
-                                console.log('Could not restart recognition:', e);
-                                stopTranscription();
-                            }
+                    let newInterimTranscript = '';
+                    let newFinalTranscript = finalTranscript;
+                    
+                    // Process results from the last result index
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        
+                        if (event.results[i].isFinal) {
+                            newFinalTranscript += transcript + ' ';
+                            console.log('✅ Final transcript added:', transcript);
+                        } else {
+                            newInterimTranscript += transcript;
                         }
-                    }, 100);
-                }
-            };
-            
-            // Set up the button click handler
-            document.getElementById('startTranscription').onclick = toggleTranscription;
-            
-            showMicrophoneStatus('🎤 Microphone ready. Click "Start Recording" to begin transcription.', 'info');
+                    }
+                    
+                    // Update the global variables
+                    finalTranscript = newFinalTranscript;
+                    interimTranscript = newInterimTranscript;
+                    
+                    // Update the textarea
+                    const textArea = document.getElementById('transcript');
+                    textArea.value = finalTranscript + interimTranscript;
+                    
+                    // Auto-scroll to bottom
+                    textArea.scrollTop = textArea.scrollHeight;
+                    
+                    // Update word count
+                    updateWordCount();
+                    
+                    // Show status update
+                    if (newFinalTranscript !== finalTranscript) {
+                        showSpeechStatus('✅ Text captured! Continue speaking...', 'success');
+                    }
+                };
+                
+                recognition.onerror = function(event) {
+                    console.error('❌ Speech recognition error:', event.error);
+                    
+                    let errorMessage = '';
+                    switch(event.error) {
+                        case 'no-speech':
+                            errorMessage = 'No speech detected. Please speak louder and closer to the microphone.';
+                            break;
+                        case 'audio-capture':
+                            errorMessage = 'Microphone not accessible. Please check your microphone connection.';
+                            break;
+                        case 'not-allowed':
+                            errorMessage = 'Microphone permission denied. Please allow microphone access and try again.';
+                            break;
+                        case 'network':
+                            errorMessage = 'Network error. Please check your internet connection.';
+                            break;
+                        case 'service-not-allowed':
+                            errorMessage = 'Speech service not allowed. Please ensure you\'re using HTTPS.';
+                            break;
+                        default:
+                            errorMessage = `Speech recognition error: ${event.error}`;
+                    }
+                    
+                    showSpeechStatus(errorMessage, 'error');
+                    stopRecording();
+                };
+                
+                recognition.onend = function() {
+                    console.log('🛑 Speech recognition ended');
+                    if (isRecording) {
+                        // Recognition ended unexpectedly, try to restart
+                        setTimeout(() => {
+                            if (isRecording) {
+                                console.log('🔄 Attempting to restart recognition...');
+                                try {
+                                    recognition.start();
+                                } catch (e) {
+                                    console.log('❌ Could not restart recognition:', e);
+                                    stopRecording();
+                                }
+                            }
+                        }, 100);
+                    }
+                };
+                
+                // Enable the start button
+                startBtn.disabled = false;
+                startBtn.innerHTML = '<span class="btn-icon">🎤</span>Start Recording';
+                startBtn.onclick = toggleRecording;
+                
+                showSpeechStatus('🎤 Ready! Click "Start Recording" to begin live transcription.', 'success');
+                
+            } catch (error) {
+                console.error('❌ Error setting up speech recognition:', error);
+                startBtn.disabled = true;
+                startBtn.innerHTML = '<span class="btn-icon">❌</span>Setup Failed';
+                showSpeechStatus('Failed to setup speech recognition. Please refresh and try again.', 'error');
+            }
         }
 
-        function showMicrophoneStatus(message, type) {
-            const statusDiv = document.getElementById('microphoneStatus');
-            statusDiv.style.display = 'block';
-            statusDiv.className = `status-${type}`;
-            statusDiv.innerHTML = message;
+        function showSpeechStatus(message, type) {
+            const statusDiv = document.getElementById('speechStatus');
+            statusDiv.innerHTML = `<div class="status-message status-${type}">${message}</div>`;
             
-            // Auto-hide after 5 seconds for success messages
+            // Auto-hide success messages after 3 seconds
             if (type === 'success') {
                 setTimeout(() => {
-                    statusDiv.style.display = 'none';
-                }, 5000);
+                    if (statusDiv.innerHTML.includes(message)) {
+                        statusDiv.innerHTML = '';
+                    }
+                }, 3000);
             }
         }
 
-        function toggleTranscription() {
+        function toggleRecording() {
             if (isRecording) {
-                stopTranscription();
+                stopRecording();
             } else {
-                startTranscription();
+                startRecording();
             }
         }
 
-        function startTranscription() {
+        function startRecording() {
             if (!recognition) {
-                showMicrophoneStatus('Speech recognition not available. Please use a supported browser like Chrome.', 'error');
+                showSpeechStatus('Speech recognition not available.', 'error');
                 return;
             }
             
-            // Request microphone permission and start recording
+            // First, request microphone permission
             navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(function(stream) {
-                    console.log('Microphone permission granted');
+                    console.log('🎤 Microphone permission granted');
                     
-                    // Store current transcript content
-                    transcriptText = document.getElementById('transcript').value;
+                    // Stop the stream immediately (we just needed permission)
+                    stream.getTracks().forEach(track => track.stop());
                     
                     try {
+                        // Store any existing text
+                        const existingText = document.getElementById('transcript').value;
+                        if (existingText && !finalTranscript) {
+                            finalTranscript = existingText;
+                        }
+                        
                         recognition.start();
-                        console.log('Starting speech recognition...');
+                        console.log('🎤 Starting speech recognition...');
                         
                         // Haptic feedback for mobile
                         if (navigator.vibrate) {
                             navigator.vibrate(100);
                         }
+                        
                     } catch (error) {
-                        console.error('Error starting recognition:', error);
-                        showMicrophoneStatus('Could not start recording. Please try again.', 'error');
+                        console.error('❌ Error starting recognition:', error);
+                        showSpeechStatus('Could not start recording. Please try again.', 'error');
                     }
-                    
-                    // Stop the media stream (we don't need it, just needed permission)
-                    stream.getTracks().forEach(track => track.stop());
                 })
                 .catch(function(error) {
-                    console.error('Microphone permission denied:', error);
-                    showMicrophoneStatus('Microphone access denied. Please allow microphone permission in your browser settings and refresh the page.', 'error');
+                    console.error('❌ Microphone permission denied:', error);
+                    showSpeechStatus('Microphone access denied. Please allow microphone permission in your browser settings.', 'error');
                 });
         }
 
-        function stopTranscription() {
+        function stopRecording() {
             if (recognition && isRecording) {
                 recognition.stop();
             }
             
             isRecording = false;
+            const startBtn = document.getElementById('startTranscriptionBtn');
+            startBtn.innerHTML = '<span class="btn-icon">🎤</span>Start Recording';
+            startBtn.classList.remove('recording');
             document.getElementById('recordingIndicator').classList.remove('active');
             
-            const btn = document.getElementById('startTranscription');
-            btn.innerHTML = '<span class="btn-icon">🎤</span>Start Recording';
-            btn.classList.remove('recording');
-            
-            showMicrophoneStatus('🛑 Recording stopped. Your transcription has been saved.', 'info');
-            updateAIStatus('Recording stopped');
+            showSpeechStatus('🛑 Recording stopped. Your transcription has been saved.', 'info');
             
             // Haptic feedback for mobile
             if (navigator.vibrate) {
                 navigator.vibrate([50, 50, 50]);
             }
+            
+            console.log('🛑 Recording stopped. Final transcript length:', finalTranscript.length);
         }
 
         function clearTranscript() {
             document.getElementById('transcript').value = '';
-            transcriptText = '';
+            finalTranscript = '';
+            interimTranscript = '';
             updateWordCount();
-            showMicrophoneStatus('📝 Transcript cleared.', 'info');
-            updateAIStatus('Transcript cleared');
+            showSpeechStatus('📝 Transcript cleared.', 'info');
+        }
+
+        function updateWordCount() {
+            const transcript = document.getElementById('transcript').value;
+            const wordCount = transcript.trim() ? transcript.trim().split(/\s+/).length : 0;
+            document.getElementById('wordCount').textContent = `${wordCount} words`;
         }
 
         function loadYouTubeVideo() {
@@ -1052,15 +1086,13 @@
             iframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&rel=0`;
             playerDiv.style.display = 'block';
             
-            showStatus('YouTube video loaded! Play the video and use the microphone button to transcribe.', 'success');
-            updateAIStatus('YouTube video ready for transcription');
+            showStatus('YouTube video loaded! Play the video and use the microphone to transcribe.', 'success');
             
             // Scroll to the video
             playerDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         function extractYouTubeVideoId(url) {
-            // Handle various YouTube URL formats
             const patterns = [
                 /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
                 /youtube\.com\/watch\?.*v=([^&\n?#]+)/
@@ -1072,14 +1104,48 @@
                     return match[1];
                 }
             }
-            
             return null;
         }
 
-        function updateWordCount() {
-            const transcript = document.getElementById('transcript').value;
-            const wordCount = transcript.trim() ? transcript.trim().split(/\s+/).length : 0;
-            document.getElementById('wordCount').textContent = `${wordCount} words`;
+        function setupFloatingActionButton() {
+            document.getElementById('floatingActionBtn').onclick = function() {
+                switchTab('1');
+                if (navigator.vibrate) {
+                    navigator.vibrate(50);
+                }
+                console.log('📝 Switched to Add Sermon via floating button');
+            };
+        }
+
+        function switchTab(tabNumber) {
+            console.log('🔄 Switching to tab:', tabNumber);
+            
+            // Remove active class from all tabs and nav buttons
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach((tab, index) => {
+                tab.classList.remove('active');
+                tab.setAttribute('aria-selected', 'false');
+                tab.setAttribute('tabindex', '-1');
+            });
+            
+            // Add active class to selected tab and nav button
+            const selectedTab = document.getElementById('tab' + tabNumber);
+            const selectedNavTab = document.querySelector('[onclick="switchTab(\'' + tabNumber + '\')"]');
+            
+            if (selectedTab) selectedTab.classList.add('active');
+            if (selectedNavTab) {
+                selectedNavTab.classList.add('active');
+                selectedNavTab.setAttribute('aria-selected', 'true');
+                selectedNavTab.setAttribute('tabindex', '0');
+                selectedNavTab.focus();
+            }
+            
+            // Update specific tabs
+            if (tabNumber === '3') {
+                updateQASermonList();
+            } else if (tabNumber === '5') {
+                updateAnalytics();
+            }
         }
 
         function generateAISummary() {
@@ -1089,7 +1155,7 @@
                 return;
             }
             
-            updateAIStatus('Generating summary...');
+            showStatus('Generating AI summary...', 'info');
             
             // Simple AI-like summary generation (client-side)
             const sentences = transcript.split(/[.!?]+/).filter(s => s.trim().length > 10);
@@ -1121,45 +1187,11 @@
             }
             
             document.getElementById('summary').value = summary;
-            updateAIStatus('Summary generated!', 'success');
             showStatus('AI summary generated successfully!', 'success');
         }
 
-        function switchTab(tabNumber) {
-            console.log('Switching to tab:', tabNumber);
-            
-            // Remove active class from all tabs and nav buttons
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.nav-tab').forEach((tab, index) => {
-                tab.classList.remove('active');
-                tab.setAttribute('aria-selected', 'false');
-                tab.setAttribute('tabindex', '-1');
-            });
-            
-            // Add active class to selected tab and nav button
-            const selectedTab = document.getElementById('tab' + tabNumber);
-            const selectedNavTab = document.querySelector('[onclick="switchTab(\'' + tabNumber + '\')"]');
-            
-            if (selectedTab) selectedTab.classList.add('active');
-            if (selectedNavTab) {
-                selectedNavTab.classList.add('active');
-                selectedNavTab.setAttribute('aria-selected', 'true');
-                selectedNavTab.setAttribute('tabindex', '0');
-                selectedNavTab.focus();
-            }
-            
-            // Update specific tabs
-            if (tabNumber === '3') {
-                updateQASermonList();
-            } else if (tabNumber === '5') {
-                updateAnalytics();
-            }
-            
-            updateAIStatus('Switched to tab ' + tabNumber);
-        }
-
         function saveSermon() {
-            console.log('Saving sermon...');
+            console.log('💾 Saving sermon...');
             
             const title = document.getElementById('title').value.trim();
             const speaker = document.getElementById('speaker').value.trim();
@@ -1181,8 +1213,6 @@
                 document.getElementById('transcript').focus();
                 return;
             }
-            
-            updateAIStatus('Saving sermon...');
             
             const wordCount = transcript.trim().split(/\s+/).length;
             
@@ -1207,23 +1237,23 @@
                 localStorage.setItem('sermons', JSON.stringify(sermons));
                 clearForm();
                 showStatus('Sermon saved successfully!', 'success');
-                updateAIStatus('Sermon saved!', 'success');
                 loadSermons();
-                showSuccessAnimation();
                 updateAnalytics();
                 
                 // Haptic feedback for mobile
                 if (navigator.vibrate) {
                     navigator.vibrate([100, 50, 100]);
                 }
+                
+                console.log('✅ Sermon saved successfully');
             } catch (error) {
-                console.error('Save error:', error);
+                console.error('❌ Save error:', error);
                 showStatus('Error saving sermon', 'error');
             }
         }
 
         function clearForm() {
-            const fields = ['title', 'speaker', 'scripture', 'transcript', 'summary', 'keyPoints', 'tags'];
+            const fields = ['title', 'speaker', 'scripture', 'transcript', 'summary', 'keyPoints', 'tags', 'youtubeUrl'];
             fields.forEach(fieldId => {
                 const field = document.getElementById(fieldId);
                 if (field) field.value = '';
@@ -1234,28 +1264,15 @@
                 dateField.value = new Date().toISOString().split('T')[0];
             }
             
-            transcriptText = '';
+            // Reset transcription variables
+            finalTranscript = '';
+            interimTranscript = '';
             updateWordCount();
-            updateAIStatus('Form cleared');
-        }
-
-        function showSuccessAnimation() {
-            const animation = document.createElement('div');
-            animation.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 4em; z-index: 10000; pointer-events: none; animation: successPop 2s ease-out forwards;';
-            animation.textContent = '✅';
             
-            document.body.appendChild(animation);
+            // Hide YouTube player
+            document.getElementById('youtubePlayer').style.display = 'none';
             
-            setTimeout(() => {
-                animation.remove();
-            }, 2000);
-            
-            if (!document.getElementById('successAnimation')) {
-                const style = document.createElement('style');
-                style.id = 'successAnimation';
-                style.textContent = '@keyframes successPop { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0); } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1); } }';
-                document.head.appendChild(style);
-            }
+            showStatus('Form cleared', 'info');
         }
 
         function loadSermons() {
@@ -1264,7 +1281,7 @@
                 sermons = saved ? JSON.parse(saved) : [];
                 displaySermons();
             } catch (error) {
-                console.error('Load error:', error);
+                console.error('❌ Load error:', error);
                 sermons = [];
             }
         }
@@ -1274,7 +1291,16 @@
             if (!sermonList) return;
             
             if (sermons.length === 0) {
-                sermonList.innerHTML = '<div class="glass-card" style="text-align: center; padding: 40px;"><div style="font-size: 3em; margin-bottom: 20px;">📚</div><h3>No sermons yet</h3><p style="color: var(--text-secondary); margin: 15px 0;">Start by adding your first sermon!</p><button class="btn" onclick="switchTab(\'1\')" style="max-width: 200px; margin: 0 auto;"><span class="btn-icon">➕</span>Add Sermon</button></div>';
+                sermonList.innerHTML = `
+                    <div class="glass-card" style="text-align: center; padding: 40px;">
+                        <div style="font-size: 3em; margin-bottom: 20px;">📚</div>
+                        <h3>No sermons yet</h3>
+                        <p style="color: var(--text-secondary); margin: 15px 0;">Start by adding your first sermon!</p>
+                        <button class="btn" onclick="switchTab('1')" style="max-width: 200px; margin: 0 auto;">
+                            <span class="btn-icon">➕</span>Add Sermon
+                        </button>
+                    </div>
+                `;
                 return;
             }
             
@@ -1288,31 +1314,33 @@
             const topics = sermon.tags ? sermon.tags.slice(0, 3).join(', ') : 'No tags';
             const wordCount = sermon.wordCount || 0;
             
-            return `<div class="glass-card">
-                <div style="color: var(--primary); font-size: 1.4em; font-weight: 700; margin-bottom: 10px;">${sermon.title}</div>
-                <div style="color: var(--text-secondary); font-size: 0.95em; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                    <span>🎤 ${sermon.speaker}</span>
-                    <span>📅 ${sermon.dateFormatted}</span>
-                    <span>📝 ${wordCount} words</span>
+            return `
+                <div class="glass-card">
+                    <div style="color: var(--primary); font-size: 1.4em; font-weight: 700; margin-bottom: 10px;">${sermon.title}</div>
+                    <div style="color: var(--text-secondary); font-size: 0.95em; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                        <span>🎤 ${sermon.speaker}</span>
+                        <span>📅 ${sermon.dateFormatted}</span>
+                        <span>📝 ${wordCount} words</span>
+                    </div>
+                    <div style="margin: 15px 0;">
+                        <strong>📄 Summary:</strong><br>
+                        <div style="margin-top: 8px; line-height: 1.6;">${sermon.summary || 'No summary available'}</div>
+                    </div>
+                    ${sermon.scripture ? `<div style="margin: 15px 0;"><strong>📖 Scripture:</strong> ${sermon.scripture}</div>` : ''}
+                    <div style="margin: 15px 0;"><strong>🏷️ Topics:</strong> ${topics}</div>
+                    <div class="sermon-actions">
+                        <button class="btn btn-secondary" onclick="exportSermon('${sermon.id}')">
+                            <span class="btn-icon">📄</span>Export
+                        </button>
+                        <button class="btn btn-secondary" onclick="shareSermon('${sermon.id}')">
+                            <span class="btn-icon">📤</span>Share
+                        </button>
+                        <button class="btn" onclick="deleteSermon('${sermon.id}')" style="background: linear-gradient(135deg, var(--error), #dc2626);">
+                            <span class="btn-icon">🗑️</span>Delete
+                        </button>
+                    </div>
                 </div>
-                <div style="margin: 15px 0;">
-                    <strong>📄 Summary:</strong><br>
-                    <div style="margin-top: 8px; line-height: 1.6;">${sermon.summary || 'No summary available'}</div>
-                </div>
-                ${sermon.scripture ? `<div style="margin: 15px 0;"><strong>📖 Scripture:</strong> ${sermon.scripture}</div>` : ''}
-                <div style="margin: 15px 0;"><strong>🏷️ Topics:</strong> ${topics}</div>
-                <div class="sermon-actions">
-                    <button class="btn btn-secondary" onclick="exportSermon('${sermon.id}', 'txt')">
-                        <span class="btn-icon">📄</span>Export
-                    </button>
-                    <button class="btn btn-secondary" onclick="shareSermon('${sermon.id}')">
-                        <span class="btn-icon">📤</span>Share
-                    </button>
-                    <button class="btn" onclick="deleteSermon('${sermon.id}')" style="background: linear-gradient(135deg, var(--error), #dc2626);">
-                        <span class="btn-icon">🗑️</span>Delete
-                    </button>
-                </div>
-            </div>`;
+            `;
         }
 
         function deleteSermon(sermonId) {
@@ -1326,34 +1354,30 @@
                 localStorage.setItem('sermons', JSON.stringify(sermons));
                 displaySermons();
                 showStatus('Sermon deleted successfully', 'success');
-                updateAIStatus('Sermon deleted');
                 updateAnalytics();
             } catch (error) {
                 showStatus('Error deleting sermon', 'error');
             }
         }
 
-        function exportSermon(sermonId, format) {
+        function exportSermon(sermonId) {
             const sermon = sermons.find(s => s.id === sermonId);
             if (!sermon) return;
             
-            let content = '';
-            if (format === 'txt') {
-                content = `SERMON: ${sermon.title}\n`;
-                content += `Speaker: ${sermon.speaker}\n`;
-                content += `Date: ${sermon.dateFormatted}\n`;
-                if (sermon.scripture) content += `Scripture: ${sermon.scripture}\n`;
-                content += `\n--- TRANSCRIPT ---\n${sermon.transcript}\n`;
-                if (sermon.summary) content += `\n--- SUMMARY ---\n${sermon.summary}\n`;
-                if (sermon.keyPoints) content += `\n--- KEY POINTS ---\n${sermon.keyPoints}\n`;
-                if (sermon.tags.length) content += `\n--- TAGS ---\n${sermon.tags.join(', ')}\n`;
-            }
+            let content = `SERMON: ${sermon.title}\n`;
+            content += `Speaker: ${sermon.speaker}\n`;
+            content += `Date: ${sermon.dateFormatted}\n`;
+            if (sermon.scripture) content += `Scripture: ${sermon.scripture}\n`;
+            content += `\n--- TRANSCRIPT ---\n${sermon.transcript}\n`;
+            if (sermon.summary) content += `\n--- SUMMARY ---\n${sermon.summary}\n`;
+            if (sermon.keyPoints) content += `\n--- KEY POINTS ---\n${sermon.keyPoints}\n`;
+            if (sermon.tags.length) content += `\n--- TAGS ---\n${sermon.tags.join(', ')}\n`;
             
             downloadFile(`${sermon.title}.txt`, content);
             showStatus('Sermon exported successfully!', 'success');
         }
 
-        function exportAllSermons(format) {
+        function exportAllSermons() {
             if (sermons.length === 0) {
                 showStatus('No sermons to export', 'warning');
                 return;
@@ -1419,24 +1443,6 @@
             }
         }
 
-        function shareSermons() {
-            const shareText = `Check out my sermon collection at Vision United Worship Center!\n\nTotal Sermons: ${sermons.length}\nRecent Sermons: ${sermons.slice(-3).map(s => s.title).join(', ')}`;
-            
-            if (navigator.share) {
-                navigator.share({
-                    title: 'My Sermon Collection',
-                    text: shareText,
-                    url: window.location.href
-                });
-            } else {
-                navigator.clipboard.writeText(shareText).then(() => {
-                    showStatus('Collection info copied to clipboard!', 'success');
-                }).catch(() => {
-                    showStatus('Could not copy to clipboard', 'error');
-                });
-            }
-        }
-
         function downloadFile(filename, content) {
             const element = document.createElement('a');
             element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
@@ -1477,8 +1483,6 @@
             const sermon = sermons.find(s => s.id === sermonId);
             if (!sermon) return;
             
-            updateAIStatus('Processing question...');
-            
             // Simple Q&A simulation
             let response = '';
             const lowerQuestion = question.toLowerCase();
@@ -1501,8 +1505,6 @@
                     <strong>Answer:</strong> ${response}
                 </div>
             `;
-            
-            updateAIStatus('Question answered!', 'success');
         }
 
         function generateStudyPlan() {
@@ -1512,8 +1514,6 @@
                 showStatus('Please add some sermons first', 'warning');
                 return;
             }
-            
-            updateAIStatus('Generating study plan...');
             
             const relevantSermons = sermons.slice(-Math.min(duration, sermons.length));
             let studyPlan = `<div class="glass-card" style="margin-top: 20px;">`;
@@ -1532,7 +1532,6 @@
             studyPlan += `</div>`;
             
             document.getElementById('studyPlanOutput').innerHTML = studyPlan;
-            updateAIStatus('Study plan generated!', 'success');
         }
 
         function updateAnalytics() {
@@ -1614,33 +1613,11 @@
                 info: 'ℹ️'
             };
             
-            status.innerHTML = `<div class="status-${type}">${statusIcon[type] || 'ℹ️'} ${message}</div>`;
+            status.innerHTML = `<div class="status-message status-${type}">${statusIcon[type] || 'ℹ️'} ${message}</div>`;
             
             setTimeout(() => {
                 status.innerHTML = '';
             }, 5000);
-        }
-
-        function updateAIStatus(message, type) {
-            const aiStatus = document.getElementById('aiStatus');
-            if (aiStatus) {
-                aiStatus.textContent = message;
-                
-                if (type === 'error') {
-                    aiStatus.style.background = 'rgba(239, 68, 68, 0.2)';
-                } else if (type === 'success') {
-                    aiStatus.style.background = 'rgba(16, 185, 129, 0.2)';
-                } else if (type === 'info') {
-                    aiStatus.style.background = 'rgba(59, 130, 246, 0.2)';
-                } else {
-                    aiStatus.style.background = 'rgba(16, 185, 129, 0.2)';
-                }
-                
-                setTimeout(() => {
-                    aiStatus.textContent = 'AI Ready';
-                    aiStatus.style.background = 'rgba(16, 185, 129, 0.2)';
-                }, 3000);
-            }
         }
 
         // Keyboard shortcuts
@@ -1672,7 +1649,7 @@
             // Quick record shortcut
             if ((event.ctrlKey || event.metaKey) && event.key === 'm') {
                 event.preventDefault();
-                toggleTranscription();
+                toggleRecording();
             }
         });
 
@@ -1696,20 +1673,27 @@
             }
         });
 
-        // Service Worker for offline capabilities
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                console.log('Service Worker support detected');
-                // Service worker registration would go here for offline functionality
-            });
-        }
-
-        console.log('Vision United Worship Center Enhanced Edition loaded successfully!');
-        console.log('🎤 Speech Recognition: ' + (window.SpeechRecognition || window.webkitSpeechRecognition ? 'Supported' : 'Not Supported'));
-        console.log('📱 Web Share API: ' + (navigator.share ? 'Supported' : 'Not Supported'));
-        console.log('🔊 Vibration API: ' + (navigator.vibrate ? 'Supported' : 'Not Supported'));
-        console.log('Features: Real-time transcription, YouTube integration, Export/Share, Analytics, Offline storage');
-        console.log('Keyboard shortcuts: Ctrl+S (Save), Ctrl+1-5 (Switch tabs), Ctrl+M (Toggle recording), Ctrl+R (Clear form)');
+        // Initialize app when loaded
+        console.log('🎤 Vision United Worship Center - Enhanced Edition');
+        console.log('✅ Real-time Speech Recognition');
+        console.log('📺 YouTube Integration');
+        console.log('💾 Local Storage & Export');
+        console.log('📱 Mobile Optimized');
+        console.log('♿ Accessibility Enhanced');
+        console.log('');
+        console.log('🔧 Debugging Info:');
+        console.log('Protocol:', location.protocol);
+        console.log('Hostname:', location.hostname);
+        console.log('Speech API:', !!(window.SpeechRecognition || window.webkitSpeechRecognition));
+        console.log('Web Share API:', !!navigator.share);
+        console.log('Vibration API:', !!navigator.vibrate);
+        console.log('');
+        console.log('⌨️ Keyboard Shortcuts:');
+        console.log('Ctrl+S: Save sermon');
+        console.log('Ctrl+1-5: Switch tabs');
+        console.log('Ctrl+M: Toggle recording');
+        console.log('Ctrl+R: Clear form');
+        console.log('');
         console.log('📋 Ready to transcribe sermons!');
     </script>
 </body>
