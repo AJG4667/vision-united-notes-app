@@ -601,18 +601,38 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="youtubeUrl">🎬 YouTube URL (Optional)</label>
+                        <input type="url" id="youtubeUrl" placeholder="Paste YouTube video URL here...">
+                        <button type="button" class="btn btn-secondary" onclick="loadYouTubeVideo()" style="margin-top: 10px;">
+                            <span class="btn-icon">📺</span>
+                            Load Video for Transcription
+                        </button>
+                        <div id="youtubePlayer" style="margin-top: 15px; display: none;">
+                            <iframe id="youtubeIframe" width="100%" height="300" frameborder="0" allowfullscreen></iframe>
+                            <p style="color: var(--text-secondary); margin-top: 10px; font-size: 0.9em;">
+                                ▶️ Play the video and use the microphone button below to transcribe the audio in real-time.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
                         <label for="transcript">🎤 Transcript</label>
                         <div class="transcription-controls">
-                            <button type="button" class="btn btn-mic" id="startTranscription" onclick="toggleTranscription()">
+                            <button type="button" class="btn btn-mic" id="startTranscription">
                                 <span class="btn-icon">🎤</span>
                                 Start Recording
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="clearTranscript" onclick="clearTranscript()">
+                                <span class="btn-icon">🗑️</span>
+                                Clear
                             </button>
                             <div class="recording-indicator" id="recordingIndicator">
                                 <span style="width: 8px; height: 8px; background: var(--error); border-radius: 50%; display: inline-block;"></span>
                                 Recording...
                             </div>
                         </div>
-                        <textarea id="transcript" rows="8" placeholder="Enter sermon transcript or use the microphone to record live..."></textarea>
+                        <div id="microphoneStatus" style="margin: 10px 0; padding: 10px; border-radius: 8px; display: none;"></div>
+                        <textarea id="transcript" rows="8" placeholder="Enter sermon transcript manually or use the microphone to record live speech..."></textarea>
                         <div class="word-count" id="wordCount">0 words</div>
                     </div>
                     
@@ -747,7 +767,7 @@
     </div>
 
     <!-- Floating Action Button -->
-    <button class="floating-action" onclick="switchTab('1')" title="Quick Add Sermon" aria-label="Quick Add Sermon">
+    <button class="floating-action" id="floatingActionBtn" aria-label="Quick Add Sermon">
         ➕
     </button>
 
@@ -782,65 +802,157 @@
                 // Add event listeners
                 document.getElementById('transcript').addEventListener('input', updateWordCount);
                 
+                // Initialize floating action button
+                document.getElementById('floatingActionBtn').onclick = function() {
+                    switchTab('1');
+                    // Add visual feedback
+                    if (navigator.vibrate) {
+                        navigator.vibrate(50);
+                    }
+                    updateAIStatus('Switched to Add Sermon');
+                };
+                
                 console.log('App initialized successfully!');
                 updateAnalytics();
+                
+                // Show welcome message
+                setTimeout(() => {
+                    showStatus('Welcome to Vision United Worship Center! Click the microphone to start recording.', 'info');
+                }, 1000);
+                
             } catch (error) {
                 console.error('Initialization error:', error);
                 updateAIStatus('Initialization failed', 'error');
+                showStatus('App initialization failed. Please refresh the page.', 'error');
             }
         }
 
         function initializeSpeechRecognition() {
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            // Check for Speech Recognition support
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
                 document.getElementById('startTranscription').style.display = 'none';
-                showStatus('Speech recognition not supported in this browser. Try Chrome or Edge.', 'warning');
+                showMicrophoneStatus('Speech recognition not supported in this browser. Try Chrome or Edge.', 'error');
                 return;
             }
 
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
             
+            // Configure recognition
             recognition.continuous = true;
             recognition.interimResults = true;
             recognition.lang = 'en-US';
+            recognition.maxAlternatives = 1;
             
+            // Set up event handlers
             recognition.onstart = function() {
+                console.log('Speech recognition started');
                 isRecording = true;
                 document.getElementById('recordingIndicator').classList.add('active');
+                showMicrophoneStatus('🎤 Listening... Speak clearly into your microphone.', 'success');
                 updateAIStatus('Listening...', 'info');
+                
+                const btn = document.getElementById('startTranscription');
+                btn.innerHTML = '<span class="btn-icon">⏹️</span>Stop Recording';
+                btn.classList.add('recording');
             };
             
             recognition.onresult = function(event) {
+                console.log('Speech recognition result received');
                 let interimTranscript = '';
-                let finalTranscript = '';
+                let finalTranscript = transcriptText;
                 
+                // Process all results
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     const transcript = event.results[i][0].transcript;
+                    
                     if (event.results[i].isFinal) {
-                        finalTranscript += transcript;
+                        finalTranscript += transcript + ' ';
+                        console.log('Final transcript:', transcript);
                     } else {
                         interimTranscript += transcript;
+                        console.log('Interim transcript:', transcript);
                     }
                 }
                 
+                // Update the textarea with both final and interim results
                 const textArea = document.getElementById('transcript');
-                textArea.value = transcriptText + finalTranscript + interimTranscript;
+                textArea.value = finalTranscript + interimTranscript;
+                
+                // Auto-scroll to bottom
+                textArea.scrollTop = textArea.scrollHeight;
+                
+                // Update word count
                 updateWordCount();
                 
-                if (finalTranscript) {
-                    transcriptText += finalTranscript;
+                // Store final transcript
+                if (event.results[event.resultIndex].isFinal) {
+                    transcriptText = finalTranscript;
+                    showMicrophoneStatus('✅ Text captured successfully. Continue speaking or stop recording.', 'success');
                 }
             };
             
             recognition.onerror = function(event) {
                 console.error('Speech recognition error:', event.error);
-                showStatus('Speech recognition error: ' + event.error, 'error');
+                let errorMessage = 'Speech recognition error: ';
+                
+                switch(event.error) {
+                    case 'no-speech':
+                        errorMessage += 'No speech detected. Please try speaking closer to the microphone.';
+                        break;
+                    case 'audio-capture':
+                        errorMessage += 'Audio capture failed. Please check your microphone.';
+                        break;
+                    case 'not-allowed':
+                        errorMessage += 'Microphone permission denied. Please allow microphone access and try again.';
+                        break;
+                    case 'network':
+                        errorMessage += 'Network error occurred. Please check your internet connection.';
+                        break;
+                    default:
+                        errorMessage += event.error;
+                }
+                
+                showMicrophoneStatus(errorMessage, 'error');
                 stopTranscription();
             };
             
             recognition.onend = function() {
-                stopTranscription();
+                console.log('Speech recognition ended');
+                if (isRecording) {
+                    // If we were supposed to be recording, restart
+                    setTimeout(() => {
+                        if (isRecording) {
+                            try {
+                                recognition.start();
+                            } catch (e) {
+                                console.log('Could not restart recognition:', e);
+                                stopTranscription();
+                            }
+                        }
+                    }, 100);
+                }
             };
+            
+            // Set up the button click handler
+            document.getElementById('startTranscription').onclick = toggleTranscription;
+            
+            showMicrophoneStatus('🎤 Microphone ready. Click "Start Recording" to begin transcription.', 'info');
+        }
+
+        function showMicrophoneStatus(message, type) {
+            const statusDiv = document.getElementById('microphoneStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.className = `status-${type}`;
+            statusDiv.innerHTML = message;
+            
+            // Auto-hide after 5 seconds for success messages
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            }
         }
 
         function toggleTranscription() {
@@ -853,26 +965,38 @@
 
         function startTranscription() {
             if (!recognition) {
-                showStatus('Speech recognition not available', 'error');
+                showMicrophoneStatus('Speech recognition not available. Please use a supported browser like Chrome.', 'error');
                 return;
             }
             
-            try {
-                transcriptText = document.getElementById('transcript').value;
-                recognition.start();
-                
-                const btn = document.getElementById('startTranscription');
-                btn.innerHTML = '<span class="btn-icon">⏹️</span>Stop Recording';
-                btn.classList.add('recording');
-                
-                // Haptic feedback for mobile
-                if (navigator.vibrate) {
-                    navigator.vibrate(100);
-                }
-            } catch (error) {
-                console.error('Error starting transcription:', error);
-                showStatus('Could not start recording', 'error');
-            }
+            // Request microphone permission and start recording
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(function(stream) {
+                    console.log('Microphone permission granted');
+                    
+                    // Store current transcript content
+                    transcriptText = document.getElementById('transcript').value;
+                    
+                    try {
+                        recognition.start();
+                        console.log('Starting speech recognition...');
+                        
+                        // Haptic feedback for mobile
+                        if (navigator.vibrate) {
+                            navigator.vibrate(100);
+                        }
+                    } catch (error) {
+                        console.error('Error starting recognition:', error);
+                        showMicrophoneStatus('Could not start recording. Please try again.', 'error');
+                    }
+                    
+                    // Stop the media stream (we don't need it, just needed permission)
+                    stream.getTracks().forEach(track => track.stop());
+                })
+                .catch(function(error) {
+                    console.error('Microphone permission denied:', error);
+                    showMicrophoneStatus('Microphone access denied. Please allow microphone permission in your browser settings and refresh the page.', 'error');
+                });
         }
 
         function stopTranscription() {
@@ -887,12 +1011,69 @@
             btn.innerHTML = '<span class="btn-icon">🎤</span>Start Recording';
             btn.classList.remove('recording');
             
+            showMicrophoneStatus('🛑 Recording stopped. Your transcription has been saved.', 'info');
             updateAIStatus('Recording stopped');
             
             // Haptic feedback for mobile
             if (navigator.vibrate) {
                 navigator.vibrate([50, 50, 50]);
             }
+        }
+
+        function clearTranscript() {
+            document.getElementById('transcript').value = '';
+            transcriptText = '';
+            updateWordCount();
+            showMicrophoneStatus('📝 Transcript cleared.', 'info');
+            updateAIStatus('Transcript cleared');
+        }
+
+        function loadYouTubeVideo() {
+            const urlInput = document.getElementById('youtubeUrl');
+            const url = urlInput.value.trim();
+            
+            if (!url) {
+                showStatus('Please enter a YouTube URL', 'warning');
+                urlInput.focus();
+                return;
+            }
+            
+            // Extract video ID from URL
+            const videoId = extractYouTubeVideoId(url);
+            if (!videoId) {
+                showStatus('Invalid YouTube URL. Please check the URL and try again.', 'error');
+                return;
+            }
+            
+            // Show the video player
+            const playerDiv = document.getElementById('youtubePlayer');
+            const iframe = document.getElementById('youtubeIframe');
+            
+            iframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&rel=0`;
+            playerDiv.style.display = 'block';
+            
+            showStatus('YouTube video loaded! Play the video and use the microphone button to transcribe.', 'success');
+            updateAIStatus('YouTube video ready for transcription');
+            
+            // Scroll to the video
+            playerDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function extractYouTubeVideoId(url) {
+            // Handle various YouTube URL formats
+            const patterns = [
+                /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+                /youtube\.com\/watch\?.*v=([^&\n?#]+)/
+            ];
+            
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match) {
+                    return match[1];
+                }
+            }
+            
+            return null;
         }
 
         function updateWordCount() {
@@ -1524,8 +1705,12 @@
         }
 
         console.log('Vision United Worship Center Enhanced Edition loaded successfully!');
-        console.log('Features: Real-time transcription, Export/Share, Analytics, Offline storage');
+        console.log('🎤 Speech Recognition: ' + (window.SpeechRecognition || window.webkitSpeechRecognition ? 'Supported' : 'Not Supported'));
+        console.log('📱 Web Share API: ' + (navigator.share ? 'Supported' : 'Not Supported'));
+        console.log('🔊 Vibration API: ' + (navigator.vibrate ? 'Supported' : 'Not Supported'));
+        console.log('Features: Real-time transcription, YouTube integration, Export/Share, Analytics, Offline storage');
         console.log('Keyboard shortcuts: Ctrl+S (Save), Ctrl+1-5 (Switch tabs), Ctrl+M (Toggle recording), Ctrl+R (Clear form)');
+        console.log('📋 Ready to transcribe sermons!');
     </script>
 </body>
 </html>
